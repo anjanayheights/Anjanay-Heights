@@ -12,7 +12,13 @@ const blobAuthCandidates = [
 ];
 
 function header(req: any, name: string) { const h = req?.headers; if (h && typeof h.get === 'function') return h.get(name) || ''; return h?.[name.toLowerCase()] || h?.[name] || ''; }
-function authorized(req: any) { const password = process.env.DASHBOARD_PASSWORD || ''; return Boolean(password && header(req, 'authorization') === `Bearer ${password}`); }
+function sessionToken() { const password = process.env.DASHBOARD_PASSWORD || ''; return password ? createHmac('sha256', password).update('anjanay-heights-crm-session').digest('hex') : ''; }
+function cookie(req: any, name: string) { const value = header(req, 'cookie'); const match = value.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`)); return match ? decodeURIComponent(match[1]) : ''; }
+function authorized(req: any) {
+  const password = process.env.DASHBOARD_PASSWORD || '';
+  const bearer = header(req, 'authorization');
+  return Boolean(password && (bearer === `Bearer ${password}` || cookie(req, 'ah_crm_session') === sessionToken()));
+}
 function send(res: any, status: number, body: unknown) { return res.status(status).setHeader('Cache-Control', 'no-store').json(body); }
 function isBlobAuthError(error: unknown) { const value = error as any; return /BlobAccessError|access denied|valid token|credentials|unauthorized|forbidden/i.test(`${String(value?.name ?? value?.constructor?.name ?? '')} ${String(value?.message ?? '')}`); }
 async function withBlobAuth<T>(operation: (auth: Record<string, string>) => Promise<T>) { let lastError: unknown = new Error('No Vercel Blob credentials configured.'); const attempts = [{}, ...blobAuthCandidates] as Record<string, string>[]; for (const auth of attempts) { try { return await operation(auth); } catch (error) { lastError = error; if (!isBlobAuthError(error)) throw error; } } throw lastError; }
