@@ -130,6 +130,43 @@ export default function Services() {
           </motion.div>
         </div>
 
+        {/* Lead Generation */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mt-14 border border-[#D8D2C5] bg-[#F9F9F7] p-8 md:p-10"
+        >
+          <div className="grid lg:grid-cols-[1.15fr_0.85fr] gap-10 items-center">
+            <div>
+              <div className="text-[10px] text-[#8C7345] font-bold uppercase tracking-[0.2em] mb-3">Digital Growth</div>
+              <h3 className="text-2xl md:text-3xl font-serif text-[#1A365D] mb-4">Meta & Google Ads — Quality Lead Generation</h3>
+              <p className="text-sm text-gray-600 leading-relaxed max-w-2xl">
+                High Quality, Verified & Real Leads through Targeted & Result Driven Campaigns, with High Intent Traffic & Better Conversions.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                {['Meta Ads', 'Google Ads', 'Quality Leads', 'Lower CPL', 'Clear Reporting'].map((item) => (
+                  <span key={item} className="px-3 py-2 bg-white border border-gray-200 text-[10px] font-bold uppercase tracking-wider text-[#1A365D]">
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className="bg-[#1A365D] text-white p-7">
+              <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#C2A36B] mb-4">Built for Better Business Growth</div>
+              <h4 className="text-xl font-serif mb-3">Verified Leads for Better Business Growth</h4>
+              <ul className="space-y-3 text-sm text-white/80">
+                <li>• Reduce Cost & Get More Quality Leads</li>
+                <li>• Transparent Reports for Smarter Decisions</li>
+                <li>• Targeted campaigns focused on conversion intent</li>
+              </ul>
+              <a href="#contact" className="inline-block mt-6 bg-[#C2A36B] text-[#1A365D] px-5 py-3 text-[10px] font-black uppercase tracking-widest hover:bg-white transition-colors">
+                Discuss Your Campaign
+              </a>
+            </div>
+          </div>
+        </motion.div>
+
         <ROICalculator />
       </div>
     </section>
