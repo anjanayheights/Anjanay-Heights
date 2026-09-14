@@ -37,5 +37,104 @@
 
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      (() => {
+        const WHATSAPP = '919289771222';
+        const CTA_SELECTOR = 'a[href*="wa.me/919289771222"]';
+
+        const esc = (value) => String(value || '').replace(/[&<>\"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
+
+        function getCardData(link) {
+          const card = link.closest('.group');
+          const headings = card ? Array.from(card.querySelectorAll('h3')) : [];
+          const texts = card ? Array.from(card.querySelectorAll('p, div')) : [];
+          const propertyName = headings.length ? headings[headings.length - 1].textContent.trim() : 'Property enquiry';
+          const location = card ? Array.from(card.querySelectorAll('p')).find((p) => p.textContent.trim() && !p.textContent.includes('Freshly verified') && !p.textContent.includes('Public listing'))?.textContent.trim() || '' : '';
+          const type = card ? Array.from(card.querySelectorAll('div')).map((el) => el.textContent.trim()).find((t) => ['Villa','Residential','Residential Plot','Commercial Land','Hospital'].includes(t)) || '' : '';
+          return { propertyName, location, type };
+        }
+
+        function closeModal() {
+          const modal = document.getElementById('ah-cta-lead-modal');
+          if (modal) modal.remove();
+        }
+
+        function showModal(data, originalHref) {
+          closeModal();
+          const modal = document.createElement('div');
+          modal.id = 'ah-cta-lead-modal';
+          modal.innerHTML = `
+            <div style="position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:18px;font-family:Arial,sans-serif">
+              <div style="width:min(440px,100%);background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);padding:22px;position:relative">
+                <button type="button" data-ah-close style="position:absolute;right:14px;top:10px;border:0;background:none;font-size:25px;cursor:pointer;color:#777">×</button>
+                <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#C2A36B">Priority property enquiry</div>
+                <h2 style="margin:7px 32px 4px 0;color:#1A365D;font-size:22px">${esc(data.propertyName)}</h2>
+                <p style="margin:0 0 16px;color:#666;font-size:13px">Get availability, pricing & site-visit assistance from Sales.</p>
+                <form data-ah-form>
+                  <input name="name" required placeholder="Your name" autocomplete="name" style="box-sizing:border-box;width:100%;padding:12px;margin:0 0 9px;border:1px solid #ddd;border-radius:8px" />
+                  <input name="phone" required inputmode="tel" placeholder="Mobile number" autocomplete="tel" style="box-sizing:border-box;width:100%;padding:12px;margin:0 0 9px;border:1px solid #ddd;border-radius:8px" />
+                  <input name="budget" required placeholder="Budget (e.g. ₹1.5 Cr)" style="box-sizing:border-box;width:100%;padding:12px;margin:0 0 9px;border:1px solid #ddd;border-radius:8px" />
+                  <select name="timeline" required style="box-sizing:border-box;width:100%;padding:12px;margin:0 0 9px;border:1px solid #ddd;border-radius:8px;background:#fff">
+                    <option value="This week">I want to proceed this week</option>
+                    <option value="Immediate">Immediate / urgent</option>
+                    <option value="Within 7 days">Within 7 days</option>
+                    <option value="This month">This month</option>
+                  </select>
+                  <textarea name="requirement" placeholder="Requirement / site visit preference (optional)" rows="3" style="box-sizing:border-box;width:100%;padding:12px;margin:0 0 12px;border:1px solid #ddd;border-radius:8px;resize:vertical"></textarea>
+                  <button type="submit" style="width:100%;padding:13px;border:0;border-radius:8px;background:#1A365D;color:#fff;font-weight:700;cursor:pointer">Continue to WhatsApp & Contact Sales</button>
+                  <div data-ah-status style="margin-top:9px;text-align:center;font-size:12px;color:#666;min-height:16px"></div>
+                </form>
+              </div>
+            </div>`;
+          document.body.appendChild(modal);
+          modal.querySelector('[data-ah-close]').addEventListener('click', closeModal);
+          modal.querySelector('[data-ah-form]').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const button = form.querySelector('button[type="submit"]');
+            const status = form.querySelector('[data-ah-status]');
+            const fd = new FormData(form);
+            const phone = String(fd.get('phone') || '').replace(/\D/g, '');
+            if (phone.length < 10) {
+              status.textContent = 'Please enter a valid mobile number.';
+              return;
+            }
+            button.disabled = true;
+            button.textContent = 'Saving enquiry…';
+            status.textContent = '';
+            const requirement = String(fd.get('requirement') || '').trim();
+            const message = `Property CTA enquiry for ${data.propertyName}. Budget: ${fd.get('budget')}. Timeline: ${fd.get('timeline')}.${requirement ? ` Requirement: ${requirement}` : ''}`;
+            try {
+              const body = new URLSearchParams({
+                'form-name':'property-cta', source:'Property CTA', lead_type:'Property CTA',
+                name:String(fd.get('name') || '').trim(), phone, property_name:data.propertyName,
+                property_type:data.type || 'Residential', preferred_location:data.location,
+                budget:String(fd.get('budget') || '').trim(), timeline:String(fd.get('timeline') || ''),
+                requirement, message
+              });
+              const response = await fetch('/api/leads', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body });
+              const result = await response.json().catch(() => ({}));
+              if (!response.ok || !result.ok) throw new Error(result.error || 'Lead save failed');
+              status.textContent = result.qualification === 'Qualified' ? '✓ Qualified lead created in Sales CRM.' : '✓ Enquiry saved in Sales CRM.';
+              const waMessage = `Hi Anjanay Heights, I am ${fd.get('name')}. I am interested in ${data.propertyName}. Budget: ${fd.get('budget')}. Timeline: ${fd.get('timeline')}. Please share availability and site visit options.`;
+              setTimeout(() => { closeModal(); window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(waMessage)}`, '_blank', 'noopener,noreferrer'); }, 500);
+            } catch (error) {
+              button.disabled = false;
+              button.textContent = 'Continue to WhatsApp & Contact Sales';
+              status.textContent = 'Could not save the enquiry. Please try again.';
+            }
+          });
+        }
+
+        document.addEventListener('click', (event) => {
+          const link = event.target.closest && event.target.closest(CTA_SELECTOR);
+          if (!link) return;
+          if (link.dataset.ahCtaBound === '1') return;
+          event.preventDefault();
+          event.stopPropagation();
+          showModal(getCardData(link), link.href);
+        }, true);
+      })();
+    </script>
   </body>
 </html>
