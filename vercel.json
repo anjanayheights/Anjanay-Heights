@@ -4,6 +4,7 @@
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "crons": [
-    { "path": "/api/follow-up-cron", "schedule": "0 3 * * *" }
+    { "path": "/api/follow-up-cron", "schedule": "0 3 * * *" },
+    { "path": "/api/follow-up-automation", "schedule": "15 3 * * *" }
   ]
 }
