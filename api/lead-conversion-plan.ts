@@ -40,6 +40,6 @@ export default async function handler(req: Request) {
     const siteVisit = /SITE VISIT/.test(stage) ? 'Confirm the scheduled site visit' : matches.length ? 'Send top 3 property shortlist' : 'Clarify requirement before matching';
     const nextAction = /NEGOTIATION|BOOKING/.test(stage) ? 'Push commercial closure' : siteVisit;
     const probability = Math.min(95, Math.max(10, (lead.phone ? 15 : 0) + (lead.budget ? 15 : 0) + (lead.location ? 15 : 0) + (matches.length * 12) + (m.siteVisitStatus === 'Completed' ? 25 : 0) + (['Hot','Very Hot'].includes(m.priority) ? 15 : 0)));
-    return json({ ok: true, leadId, stage, conversionProbability: probability, nextAction, siteVisitAction: siteVisit, matches, generatedAt: new Date().toISOString() });
+    return json({ ok: true, leadId, lead: { name: lead.name || 'Customer', phone: lead.phone || '' }, stage, conversionProbability: probability, nextAction, siteVisitAction: siteVisit, matches, generatedAt: new Date().toISOString() });
   } catch (e) { return json({ error: e instanceof Error ? e.message : 'Unable to build conversion plan' }, 500); }
 }
