@@ -34,14 +34,30 @@ export default async function handler(req: any, res: any) {
     const waBody = await wa.json().catch(() => ({}));
     if (!wa.ok) return json(res, 502, { error: 'WhatsApp message failed', detail: waBody });
 
-    // Reuse the existing CRM metadata writer so the action appears in the lead history.
+    // Reuse the existing CRM metadata writer. A successful outbound message moves
+    // the lead to Contacted and leaves the next action as Follow-up, without
+    // overwriting the lead's priority, requirement or sales assignment.
     const base = `${header(req, 'x-forwarded-proto') || 'https'}://${header(req, 'host') || ''}`;
     const authHeader = header(req, 'authorization');
     const metaHeaders: Record<string, string> = { 'content-type': 'application/json' };
     if (authHeader) metaHeaders.authorization = authHeader;
     try {
-      await fetch(`${base}/api/lead-meta`, { method: 'POST', headers: metaHeaders, body: JSON.stringify({ leadId, meta: { activity: { action: 'WhatsApp Shortlist Sent', note: `Sent ${matches.length} matched properties to ${customerPhone}.` } } }) });
-    } catch (error) { console.error('shortlist CRM history update failed', error); }
+      await fetch(`${base}/api/lead-meta`, {
+        method: 'POST',
+        headers: metaHeaders,
+        body: JSON.stringify({
+          leadId,
+          meta: {
+            status: 'Contacted',
+            nextAction: 'Follow-up',
+            activity: {
+              action: 'WhatsApp Shortlist Sent',
+              note: `Sent ${matches.length} matched properties to ${customerPhone}.`
+            }
+          }
+        })
+      });
+    } catch (error) { console.error('shortlist CRM update failed', error); }
 
     return json(res, 200, { ok: true, sent: true, leadId, recipient: customerPhone, propertyCount: matches.length, messageId: waBody?.messages?.[0]?.id || '', sentAt: new Date().toISOString() });
   } catch (error) {
