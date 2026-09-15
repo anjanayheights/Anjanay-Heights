@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import PriorityActionPanel from './PriorityActionPanel';
 import SlaStatusPanel from './SlaStatusPanel';
+import RevenuePriorityPanel from './RevenuePriorityPanel';
 
-type Lead={id:string;name?:string;phone?:string;property_type?:string;location?:string;budget?:string;source?:string;created_at?:string;lead_type?:string;requirement?:string;message?:string};
+type Lead={id:string;name?:string;phone?:string;property_type?:string;location?:string;budget?:string;source?:string;created_at?:string;lead_type?:string;requirement?:string;message?:string;bhk?:string};
 type Meta={status?:string;priority?:string;nextAction?:string;followUp?:string;dealValue?:string;siteVisitDateTime?:string;assignedSalesperson?:string;salesStage?:string;recommendedAction?:string};
 type Route={priority?:string;score?:number;salesStage?:string;nextAction?:string;recommendedAction?:string;followUp?:string;intent?:string;urgency?:number;due?:boolean;routeReason?:string};
 type Reengage={id:string;name?:string;phone?:string;intent?:string;location?:string;property_type?:string;priority?:string;score?:number;lastContactAt?:string;daysSinceContact?:number;action?:string;message?:string;whatsappUrl?:string};
@@ -25,6 +26,7 @@ export default function SalesCockpit(){
  return <div className="min-h-screen bg-[#F5F7FA] p-4 md:p-7"><div className="max-w-7xl mx-auto"><div className="flex flex-wrap justify-between gap-3 mb-6"><div><a href="/admin" className="text-sm font-semibold text-[#1A365D]">← CRM Dashboard</a><p className="text-xs uppercase tracking-widest text-[#C2A36B] font-bold mt-3">Anjanay Heights</p><h1 className="text-3xl font-bold text-[#1A365D]">Daily Sales Cockpit</h1><p className="text-gray-500">Aaj kis lead par action lena hai — ek screen par.</p></div><div className="flex gap-2"><a href="/admin/sales-journey" className="border rounded-xl px-4 py-2.5 font-semibold bg-white">🚀 Sales Journey</a><button onClick={()=>void load()} className="bg-[#1A365D] text-white rounded-xl px-4 py-2.5 font-semibold">↻ Refresh</button></div></div>
  {error&&<div className="bg-red-50 text-red-700 rounded-xl p-3 mb-4">{error}</div>}
  <SlaStatusPanel />
+ <RevenuePriorityPanel />
  <div className="mt-5"><PriorityActionPanel /></div>
  {loading?<div className="bg-white border rounded-2xl p-10 text-center text-gray-500">Loading real CRM leads…</div>:<>
  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4"><div className="bg-white border rounded-2xl p-4"><p className="text-xs text-gray-400">ACTIVE</p><b className="text-2xl text-[#1A365D]">{active.length}</b></div><div className="bg-white border rounded-2xl p-4"><p className="text-xs text-gray-400">HOT+</p><b className="text-2xl text-[#1A365D]">{hot}</b></div><div className="bg-white border rounded-2xl p-4"><p className="text-xs text-gray-400">OVERDUE</p><b className="text-2xl text-red-600">{overdue}</b></div><div className="bg-white border rounded-2xl p-4"><p className="text-xs text-gray-400">VISIT / NEGOTIATION</p><b className="text-2xl text-[#1A365D]">{visits} / {negotiation}</b></div></div>
