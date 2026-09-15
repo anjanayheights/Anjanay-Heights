@@ -1,0 +1,10 @@
+import { get, list, put } from '@vercel/blob';
+import { assignLead } from './lead-assignment';
+import { sendAssignedLeadAlert } from './assigned-lead-alert';
+
+const auths=[...(process.env.VERCEL_OIDC_TOKEN&&process.env.BLOB_STORE_ID?[{oidcToken:process.env.VERCEL_OIDC_TOKEN,storeId:process.env.BLOB_STORE_ID}]:[]),...(process.env.BLOB_READ_WRITE_TOKEN?[{token:process.env.BLOB_READ_WRITE_TOKEN}]:[])];
+async function blob<T>(fn:(a:any)=>Promise<T>){let last:any;for(const a of [{},...auths])try{return await fn(a)}catch(e){last=e}throw last}
+async function read(url:string){const r:any=await blob(a=>get(url,{access:'private',useCache:false,...a}));return r?.stream?await new Response(r.stream).json():null}
+async function collection(path:string){try{const r:any=await blob(a=>list({prefix:path,...a}));return r.blobs?.[0]?await read(r.blobs[0].url):{}}catch{return {}}}
+function authorized(req:any){const secret=process.env.CRON_SECRET||'';if(!secret)return true;const h=req?.headers?.get?req.headers.get('authorization'):req?.headers?.authorization;return h===`Bearer ${secret}`}
+export default async function handler(req:any,res:any){if(req.method!=='GET')return res.status(405).json({error:'Method not allowed'});if(!authorized(req))return res.status(401).json({error:'Unauthorized'});try{const r:any=await blob(a=>list({prefix:'leads/',...a}));const meta=await collection('crm/lead-meta.json');let checked=0,assigned=0,alerts=0;for(const b of r.blobs||[]){let lead:any;try{lead=await read(b.url)}catch{continue}if(!lead||String(lead.source||'').toLowerCase()!=='meta-lead-ads')continue;checked++;const m=meta[lead.id]||{};if(m.assignedSalesperson||m.assignedAgent)continue;const assignment=await assignLead(lead);if(!assignment.assignedSalesperson)continue;assigned++;try{const alert=await sendAssignedLeadAlert(lead,assignment);if(alert?.whatsapp?.sent)alerts++}catch(e){console.error('Meta lead assignment alert failed',lead.id,e)}}return res.status(200).json({ok:true,checked,assigned,alerts,generatedAt:new Date().toISOString()})}catch(e){console.error('Meta lead auto-route error',e);return res.status(500).json({error:'Unable to auto-route Meta leads.'})}}
