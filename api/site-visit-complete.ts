@@ -1,0 +1,11 @@
+import { get, head, list, put } from '@vercel/blob';
+
+const auths = [
+  ...(process.env.VERCEL_OIDC_TOKEN && process.env.BLOB_STORE_ID ? [{ oidcToken: process.env.VERCEL_OIDC_TOKEN, storeId: process.env.BLOB_STORE_ID }] : []),
+  ...(process.env.BLOB_READ_WRITE_TOKEN ? [{ token: process.env.BLOB_READ_WRITE_TOKEN }] : []),
+];
+async function blob<T>(fn:(a:any)=>Promise<T>){let last:any;for(const a of [{},...auths])try{return await fn(a)}catch(e){last=e}throw last}
+async function read(url:string){const r:any=await blob(a=>get(url,{access:'private',useCache:false,...a}));return r?.stream?await new Response(r.stream).json():null}
+function auth(req:any){const p=process.env.DASHBOARD_PASSWORD||'';return !p||req.headers?.authorization===`Bearer ${p}`}
+function send(res:any,s:number,b:any){return res.status(s).setHeader('Cache-Control','no-store').json(b)}
+export default async function handler(req:any,res:any){if(req.method!=='POST')return send(res,405,{error:'Method not allowed'});if(!auth(req))return send(res,401,{error:'Unauthorized'});const leadId=String(req.body?.leadId||'').trim();if(!leadId)return send(res,400,{error:'leadId is required'});try{const r:any=await blob(a=>list({prefix:'crm/lead-meta.json',...a}));if(!r.blobs?.[0])return send(res,404,{error:'CRM metadata not found'});const meta:any=await read(r.blobs[0].url)||{};const old=meta[leadId];if(!old)return send(res,404,{error:'Lead not found'});const now=new Date().toISOString();meta[leadId]={...old,status:'Interested',nextAction:'Follow-up',siteVisitStatus:'Completed',followUp:now.slice(0,10),siteVisitDateTime:old.siteVisitDateTime,history:[...(old.history||[]),{id:`visit-done-${Date.now()}`,at:now,action:'Site Visit Completed',note:'Site visit marked completed. Follow-up required.'}]};await blob(a=>put('crm/lead-meta.json',JSON.stringify(meta),{access:'private',addRandomSuffix:false,allowOverwrite:true,contentType:'application/json',...a}));return send(res,200,{ok:true,leadId,stage:'SITE VISIT DONE',status:'Interested',nextAction:'Follow-up',followUp:now.slice(0,10),meta:meta[leadId]})}catch(e){console.error(e);return send(res,500,{error:'Unable to complete site visit'})}}
