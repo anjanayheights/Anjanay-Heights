@@ -1,7 +1,5 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-
 const AUTH = process.env.DASHBOARD_PASSWORD || '';
-const ok = (req: VercelRequest) => !AUTH || req.headers.authorization === `Bearer ${AUTH}`;
+const ok = (req: any) => !AUTH || req.headers?.authorization === `Bearer ${AUTH}`;
 const daysSince = (value?: string) => {
   if (!value) return 999;
   const t = new Date(value).getTime();
@@ -9,12 +7,11 @@ const daysSince = (value?: string) => {
 };
 const cleanPhone = (v?: string) => String(v || '').replace(/\D/g, '');
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: any, res: any) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
   if (!ok(req)) return res.status(401).json({ error: 'Unauthorized' });
-
   try {
-    const base = `${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host}`;
+    const base = `${req.headers?.['x-forwarded-proto'] || 'https'}://${req.headers?.host || ''}`;
     const headers = AUTH ? { Authorization: `Bearer ${AUTH}` } : {};
     const [lr, mr] = await Promise.all([
       fetch(`${base}/api/leads?refresh=${Date.now()}`, { headers, cache: 'no-store' }),
@@ -27,7 +24,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const s = String(meta[l.id]?.status || '').toLowerCase();
       return s !== 'closed' && s !== 'lost' && cleanPhone(l.phone);
     });
-
     const queue = leads.map((lead: any) => {
       const m = meta[lead.id] || {};
       const last = m.lastContactAt || m.last_contact_at || lead.updated_at || lead.created_at;
@@ -42,7 +38,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const phone = cleanPhone(lead.phone);
       return { id: lead.id, name: lead.name || 'Lead', phone, intent: lead.lead_type || 'BUY', location: lead.location || '', propertyType: lead.property_type || '', priority: m.priority || 'Warm', score, lastContactAt: last, daysSinceContact: age, action, urgency, message, whatsappUrl: `https://wa.me/${phone}?text=${encodeURIComponent(message)}` };
     }).filter(Boolean).sort((a: any, b: any) => b.urgency - a.urgency || b.daysSinceContact - a.daysSinceContact).slice(0, 25);
-
     return res.status(200).json({ generatedAt: new Date().toISOString(), count: queue.length, queue });
   } catch (e) {
     return res.status(500).json({ error: e instanceof Error ? e.message : 'Unable to build re-engagement queue' });
