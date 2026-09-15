@@ -1,21 +1,7 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
-
 # Anjanay Heights CRM
 
-This contains everything you need to run the app locally.
+Sales-machine CRM for ANJANAY HEIGHTS real-estate operations.
 
-## Deployment
+Current sales workflow: lead capture, scoring, assignment, property matching, WhatsApp acknowledgement, site visits, reminders, post-visit conversion, follow-ups, re-engagement, review requests, and sales cockpit actions.
 
-Production deployment is configured from the `main` branch on Vercel.
-
-## Run Locally
-
-**Prerequisites:** Node.js
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+Inventory and CRM data remain in their existing storage paths; upgrades are additive.

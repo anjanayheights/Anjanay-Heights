@@ -1,0 +1,15 @@
+import { get, head, put } from '@vercel/blob';
+import { createHmac } from 'node:crypto';
+
+const PATH = 'crm/booking-control.json';
+const candidates = [
+  ...(process.env.VERCEL_OIDC_TOKEN && process.env.BLOB_STORE_ID ? [{ oidcToken: process.env.VERCEL_OIDC_TOKEN, storeId: process.env.BLOB_STORE_ID }] : []),
+  ...(process.env.BLOB_READ_WRITE_TOKEN ? [{ token: process.env.BLOB_READ_WRITE_TOKEN }] : []),
+];
+function header(req:any,name:string){const h=req?.headers;if(h&&typeof h.get==='function')return h.get(name)||'';return h?.[name.toLowerCase()]||h?.[name]||'';}
+function authorized(req:any){const p=process.env.DASHBOARD_PASSWORD||'';const bearer=header(req,'authorization');const cookie=String(header(req,'cookie'));const token=p?createHmac('sha256',p).update('anjanay-heights-crm-session').digest('hex'):'';return Boolean((p&&bearer===`Bearer ${p}`)||(token&&cookie.includes(`ah_crm_session=${token}`)));}
+function blobError(e:any){return /access denied|credentials|unauthorized|forbidden|valid token/i.test(`${e?.name||''} ${e?.message||''}`);}
+async function withAuth<T>(fn:(a:any)=>Promise<T>){let last:any;for(const a of [{},...candidates]){try{return await fn(a)}catch(e){last=e;if(!blobError(e))throw e}}throw last;}
+async function read(){try{const info:any=await withAuth(a=>head(PATH,a));const result:any=await withAuth(a=>get(info.url,{access:'private',useCache:false,...a}));return {data:await new Response(result.stream).json(),etag:info.etag};}catch(e:any){if(e?.status===404||/not found|BlobNotFound/i.test(`${e?.name||''} ${e?.message||''}`))return {data:{},etag:undefined};throw e;}}
+async function write(data:any,etag?:string){return withAuth(a=>put(PATH,JSON.stringify(data),{access:'private',addRandomSuffix:false,allowOverwrite:true,contentType:'application/json',...(etag?{ifMatch:etag}:{}),...a}));}
+export default async function handler(req:any,res:any){if(!authorized(req))return res.status(401).json({error:'Unauthorized'});try{if(req.method==='GET'){const x=await read();return res.status(200).setHeader('Cache-Control','no-store').json({bookings:x.data||{}});}if(req.method==='POST'){const body=req.body&&typeof req.body==='object'?req.body:{};const leadId=String(body.leadId||'').trim();if(!leadId)return res.status(400).json({error:'leadId is required'});const incoming=body.booking&&typeof body.booking==='object'?body.booking:{};for(let attempt=0;attempt<3;attempt++){const snap=await read();const current:Record<string,any>=snap.data||{};const record:Record<string,string>={...(current[leadId]||{}),...incoming,updatedAt:new Date().toISOString()};for(const k of Object.keys(record))record[k]=String(record[k]??'').slice(0,2000);current[leadId]=record;try{await write(current,snap.etag);return res.status(200).json({ok:true,leadId,booking:record});}catch(e:any){if(!/precondition|etag/i.test(String(e?.message||''))||attempt===2)throw e;}}}return res.status(405).json({error:'Method not allowed'});}catch(e){console.error('booking-control error',e);return res.status(500).json({error:'Unable to access booking control storage.'});}}

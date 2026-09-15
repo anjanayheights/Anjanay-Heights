@@ -16,6 +16,8 @@ export default function Testimonials() {
     }
   ];
 
+  const reviewSearchUrl = 'https://www.google.com/search?q=Anjanay+Heights+Noida+reviews';
+
   return (
     <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -44,6 +46,29 @@ export default function Testimonials() {
             </motion.div>
           ))}
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mt-10 rounded-2xl border border-[#E5E7EB] bg-[#F9F9F7] p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-5"
+        >
+          <div>
+            <div className="text-[10px] text-[#1A365D] font-bold uppercase tracking-widest mb-2">Help Other Buyers</div>
+            <h3 className="text-xl md:text-2xl font-serif text-[#1A365D]">Worked with Anjanay Heights?</h3>
+            <p className="text-sm text-gray-600 mt-2 max-w-2xl">
+              Share your genuine experience on Google. Your feedback helps future buyers make a confident property decision.
+            </p>
+          </div>
+          <a
+            href={reviewSearchUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center justify-center rounded-full bg-[#1A365D] px-6 py-3 text-sm font-semibold text-white hover:opacity-90 transition-opacity whitespace-nowrap"
+          >
+            Review Us on Google →
+          </a>
+        </motion.div>
       </div>
     </section>
   );

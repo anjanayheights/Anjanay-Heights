@@ -4,25 +4,46 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="index, follow" />
-    <meta name="description" content="Anjanay Heights — premium real estate opportunities in Noida and Greater Noida, including residential, commercial and investment properties." />
-    <link rel="canonical" href="https://anjanayheights-9m6i.vercel.app/" />
+    <meta name="description" content="Anjanay Heights is a real estate consultant in Noida, Greater Noida and NCR offering residential, commercial, plots, land, healthcare and property investment services." />
+    <meta name="keywords" content="real estate consultant in Noida, property consultant Noida, real estate agency Noida, residential property consultant, commercial property consultant, property investment consultant, Greater Noida property dealer" />
+    <link rel="canonical" href="https://anjanayheights.vercel.app/" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Anjanay Heights | Premium Real Estate" />
-    <meta property="og:description" content="Explore premium residential, commercial and investment real estate opportunities in Noida and Greater Noida." />
-    <meta property="og:url" content="https://anjanayheights-9m6i.vercel.app/" />
+    <meta property="og:title" content="Real Estate Consultant in Noida | Anjanay Heights" />
+    <meta property="og:description" content="Residential, commercial, plots, land, healthcare and investment property consulting across Noida and Greater Noida." />
+    <meta property="og:url" content="https://anjanayheights.vercel.app/" />
     <meta property="og:site_name" content="Anjanay Heights" />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Anjanay Heights | Premium Real Estate" />
-    <meta name="twitter:description" content="Premium real estate opportunities in Noida and Greater Noida." />
+    <meta name="twitter:title" content="Real Estate Consultant in Noida | Anjanay Heights" />
+    <meta name="twitter:description" content="Property consulting, buying, selling and investment assistance in Noida and Greater Noida." />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "Organization",
+        "@type": "RealEstateAgent",
         "name": "Anjanay Heights",
-        "url": "https://anjanayheights-9m6i.vercel.app/"
+        "url": "https://anjanayheights.vercel.app/",
+        "telephone": "+91 92897 71222",
+        "email": "anjanayheights@gmail.com",
+        "description": "Real estate consultant serving Noida, Greater Noida and NCR with residential, commercial, land, healthcare and investment property services.",
+        "areaServed": [
+          {"@type":"City","name":"Noida"},
+          {"@type":"City","name":"Greater Noida"},
+          {"@type":"City","name":"Ghaziabad"},
+          {"@type":"City","name":"Delhi"},
+          {"@type":"AdministrativeArea","name":"NCR"}
+        ],
+        "serviceType": [
+          "Residential Property Consulting",
+          "Commercial Property Consulting",
+          "Property Buying Assistance",
+          "Property Selling Assistance",
+          "Property Investment Consulting",
+          "Residential Plots and Land Consulting",
+          "Healthcare Property Consulting"
+        ],
+        "sameAs": []
       }
     </script>
-    <title>Anjanay Heights | Premium Real Estate in Noida & Greater Noida</title>
+    <title>Real Estate Consultant in Noida | Anjanay Heights</title>
   </head>
   <body>
     <!-- Netlify Forms detection for the React callback form -->
@@ -47,7 +68,6 @@
         function getCardData(link) {
           const card = link.closest('.group');
           const headings = card ? Array.from(card.querySelectorAll('h3')) : [];
-          const texts = card ? Array.from(card.querySelectorAll('p, div')) : [];
           const propertyName = headings.length ? headings[headings.length - 1].textContent.trim() : 'Property enquiry';
           const location = card ? Array.from(card.querySelectorAll('p')).find((p) => p.textContent.trim() && !p.textContent.includes('Freshly verified') && !p.textContent.includes('Public listing'))?.textContent.trim() || '' : '';
           const type = card ? Array.from(card.querySelectorAll('div')).map((el) => el.textContent.trim()).find((t) => ['Villa','Residential','Residential Plot','Commercial Land','Hospital'].includes(t)) || '' : '';
@@ -59,7 +79,7 @@
           if (modal) modal.remove();
         }
 
-        function showModal(data, originalHref) {
+        function showModal(data) {
           closeModal();
           const modal = document.createElement('div');
           modal.id = 'ah-cta-lead-modal';
@@ -95,10 +115,7 @@
             const status = form.querySelector('[data-ah-status]');
             const fd = new FormData(form);
             const phone = String(fd.get('phone') || '').replace(/\D/g, '');
-            if (phone.length < 10) {
-              status.textContent = 'Please enter a valid mobile number.';
-              return;
-            }
+            if (phone.length < 10) { status.textContent = 'Please enter a valid mobile number.'; return; }
             button.disabled = true;
             button.textContent = 'Saving enquiry…';
             status.textContent = '';
@@ -132,7 +149,7 @@
           if (link.dataset.ahCtaBound === '1') return;
           event.preventDefault();
           event.stopPropagation();
-          showModal(getCardData(link), link.href);
+          showModal(getCardData(link));
         }, true);
       })();
     </script>
