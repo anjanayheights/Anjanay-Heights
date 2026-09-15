@@ -5,6 +5,7 @@
   ],
   "crons": [
     { "path": "/api/follow-up-cron", "schedule": "0 3 * * *" },
-    { "path": "/api/follow-up-automation", "schedule": "15 3 * * *" }
+    { "path": "/api/follow-up-automation", "schedule": "15 3 * * *" },
+    { "path": "/api/site-visit-reminders", "schedule": "0 * * * *" }
   ]
 }
