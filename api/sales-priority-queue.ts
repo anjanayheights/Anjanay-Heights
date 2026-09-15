@@ -1,15 +1,12 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-
 const PASSWORD = process.env.DASHBOARD_PASSWORD || '';
-const auth = (req: VercelRequest) => !PASSWORD || req.headers.authorization === `Bearer ${PASSWORD}` || String(req.headers.cookie || '').includes('crm_session=');
+const auth = (req: any) => !PASSWORD || req.headers?.authorization === `Bearer ${PASSWORD}` || String(req.headers?.cookie || '').includes('ah_crm_session=');
 const rank = (p?: string) => p === 'Very Hot' ? 4 : p === 'Hot' ? 3 : p === 'Warm' ? 2 : 1;
 const intent = (l: any) => { const t = [l.lead_type, l.requirement, l.message].join(' ').toLowerCase(); if (/sell|selling|seller/.test(t)) return 'SELL'; if (/invest|investment|roi|return/.test(t)) return 'INVEST'; return 'BUY'; };
 const due = (v?: string) => { if (!v) return false; const d = new Date(v); return !Number.isNaN(d.getTime()) && d.getTime() <= Date.now(); };
-
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: any, res: any) {
   if (!auth(req)) return res.status(401).json({ error: 'Unauthorized' });
   try {
-    const base = `${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host}`;
+    const base = `${req.headers?.['x-forwarded-proto'] || 'https'}://${req.headers?.host || ''}`;
     const h = PASSWORD ? { Authorization: `Bearer ${PASSWORD}` } : {};
     const [lr, mr] = await Promise.all([
       fetch(`${base}/api/leads?refresh=${Date.now()}`, { headers: h, cache: 'no-store' }),
