@@ -6,9 +6,6 @@
   "crons": [
     { "path": "/api/follow-up-cron", "schedule": "0 3 * * *" },
     { "path": "/api/follow-up-automation", "schedule": "15 3 * * *" },
-    { "path": "/api/site-visit-reminders", "schedule": "0 * * * *" },
-    { "path": "/api/payment-escalation-alert", "schedule": "30 3 * * *" },
-    { "path": "/api/lead-response-sla", "schedule": "15 * * * *" },
-    { "path": "/api/meta-lead-auto-route", "schedule": "*/5 * * * *" }
+    { "path": "/api/payment-escalation-alert", "schedule": "30 3 * * *" }
   ]
 }
