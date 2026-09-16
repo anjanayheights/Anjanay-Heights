@@ -1,0 +1,40 @@
+name: Sales Machine High-Frequency Automations
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  run-automations:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run site visit reminders
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -n "$CRON_SECRET" ]; then
+            curl --fail-with-body --silent --show-error --max-time 60 -H "Authorization: Bearer $CRON_SECRET" "https://anjanayheights-9m6i.vercel.app/api/site-visit-reminders"
+          else
+            curl --fail-with-body --silent --show-error --max-time 60 "https://anjanayheights-9m6i.vercel.app/api/site-visit-reminders"
+          fi
+
+      - name: Run lead response SLA
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -n "$CRON_SECRET" ]; then
+            curl --fail-with-body --silent --show-error --max-time 60 -H "Authorization: Bearer $CRON_SECRET" "https://anjanayheights-9m6i.vercel.app/api/lead-response-sla"
+          else
+            curl --fail-with-body --silent --show-error --max-time 60 "https://anjanayheights-9m6i.vercel.app/api/lead-response-sla"
+          fi
+
+      - name: Run Meta lead auto-routing
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -n "$CRON_SECRET" ]; then
+            curl --fail-with-body --silent --show-error --max-time 60 -H "Authorization: Bearer $CRON_SECRET" "https://anjanayheights-9m6i.vercel.app/api/meta-lead-auto-route"
+          else
+            curl --fail-with-body --silent --show-error --max-time 60 "https://anjanayheights-9m6i.vercel.app/api/meta-lead-auto-route"
+          fi
