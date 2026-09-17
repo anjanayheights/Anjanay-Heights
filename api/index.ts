@@ -1,95 +1,52 @@
 // Single Vercel entrypoint for the Hobby-plan function limit.
-// Import server modules without explicit .ts extensions so Vercel bundles the
-// TypeScript modules into the generated server function instead of leaving
-// runtime references to source files that are not present in /var/task.
-import * as m0 from '../server-api/ai-lead-assistant';
-import * as m1 from '../server-api/assigned-lead-alert';
-import * as m2 from '../server-api/booking-control';
-import * as m3 from '../server-api/collection-priority';
-import * as m4 from '../server-api/customer-ai';
-import * as m5 from '../server-api/customer-whatsapp';
-import * as m6 from '../server-api/follow-up-automation';
-import * as m7 from '../server-api/follow-up-cron';
-import * as m8 from '../server-api/follow-up-push';
-import * as m9 from '../server-api/followup-engine';
-import * as m10 from '../server-api/inventory-public';
-import * as m11 from '../server-api/lead-assignment';
-import * as m12 from '../server-api/lead-conversion-plan';
-import * as m13 from '../server-api/lead-match';
-import * as m14 from '../server-api/lead-meta';
-import * as m15 from '../server-api/lead-property-match';
-import * as m16 from '../server-api/lead-reengagement';
-import * as m17 from '../server-api/lead-response-sla';
-import * as m18 from '../server-api/lead-routing';
-import * as m19 from '../server-api/lead-shortlist-send';
-import * as m20 from '../server-api/leads';
-import * as m21 from '../server-api/meta-lead-auto-route';
-import * as m22 from '../server-api/meta-lead-webhook';
-import * as m23 from '../server-api/payment-collections';
-import * as m24 from '../server-api/payment-escalation-alert';
-import * as m25 from '../server-api/payment-escalation';
-import * as m26 from '../server-api/payment-ledger';
-import * as m27 from '../server-api/payment-schedule';
-import * as m28 from '../server-api/post-visit-followup';
-import * as m29 from '../server-api/priority-match-queue';
-import * as m30 from '../server-api/properties';
-import * as m31 from '../server-api/property-history';
-import * as m32 from '../server-api/property-match';
-import * as m33 from '../server-api/push';
-import * as m34 from '../server-api/referral-request';
-import * as m35 from '../server-api/review-request';
-import * as m36 from '../server-api/sales-priority-queue';
-import * as m37 from '../server-api/site-visit-alert';
-import * as m38 from '../server-api/site-visit-complete';
-import * as m39 from '../server-api/site-visit-reminders';
-import * as m40 from '../server-api/site-visit-request';
-import * as m41 from '../server-api/visitor';
-import * as m42 from '../server-api/whatsapp-webhook';
+// Keep route modules lazy-loaded so one unrelated module cannot crash every API
+// route during cold start (for example, an optional dependency used by another
+// sales module). Vercel still bundles the statically analyzable dynamic imports.
 
-const routes: Record<string, any> = {
-  'ai-lead-assistant': m0,
-  'assigned-lead-alert': m1,
-  'booking-control': m2,
-  'collection-priority': m3,
-  'customer-ai': m4,
-  'customer-whatsapp': m5,
-  'follow-up-automation': m6,
-  'follow-up-cron': m7,
-  'follow-up-push': m8,
-  'followup-engine': m9,
-  'inventory-public': m10,
-  'lead-assignment': m11,
-  'lead-conversion-plan': m12,
-  'lead-match': m13,
-  'lead-meta': m14,
-  'lead-property-match': m15,
-  'lead-reengagement': m16,
-  'lead-response-sla': m17,
-  'lead-routing': m18,
-  'lead-shortlist-send': m19,
-  'leads': m20,
-  'meta-lead-auto-route': m21,
-  'meta-lead-webhook': m22,
-  'payment-collections': m23,
-  'payment-escalation-alert': m24,
-  'payment-escalation': m25,
-  'payment-ledger': m26,
-  'payment-schedule': m27,
-  'post-visit-followup': m28,
-  'priority-match-queue': m29,
-  'properties': m30,
-  'property-history': m31,
-  'property-match': m32,
-  'push': m33,
-  'referral-request': m34,
-  'review-request': m35,
-  'sales-priority-queue': m36,
-  'site-visit-alert': m37,
-  'site-visit-complete': m38,
-  'site-visit-reminders': m39,
-  'site-visit-request': m40,
-  'visitor': m41,
-  'whatsapp-webhook': m42,
+const loaders: Record<string, () => Promise<any>> = {
+  'ai-lead-assistant': () => import('../server-api/ai-lead-assistant'),
+  'assigned-lead-alert': () => import('../server-api/assigned-lead-alert'),
+  'booking-control': () => import('../server-api/booking-control'),
+  'collection-priority': () => import('../server-api/collection-priority'),
+  'customer-ai': () => import('../server-api/customer-ai'),
+  'customer-whatsapp': () => import('../server-api/customer-whatsapp'),
+  'follow-up-automation': () => import('../server-api/follow-up-automation'),
+  'follow-up-cron': () => import('../server-api/follow-up-cron'),
+  'follow-up-push': () => import('../server-api/follow-up-push'),
+  'followup-engine': () => import('../server-api/followup-engine'),
+  'inventory-public': () => import('../server-api/inventory-public'),
+  'lead-assignment': () => import('../server-api/lead-assignment'),
+  'lead-conversion-plan': () => import('../server-api/lead-conversion-plan'),
+  'lead-match': () => import('../server-api/lead-match'),
+  'lead-meta': () => import('../server-api/lead-meta'),
+  'lead-property-match': () => import('../server-api/lead-property-match'),
+  'lead-reengagement': () => import('../server-api/lead-reengagement'),
+  'lead-response-sla': () => import('../server-api/lead-response-sla'),
+  'lead-routing': () => import('../server-api/lead-routing'),
+  'lead-shortlist-send': () => import('../server-api/lead-shortlist-send'),
+  'leads': () => import('../server-api/leads'),
+  'meta-lead-auto-route': () => import('../server-api/meta-lead-auto-route'),
+  'meta-lead-webhook': () => import('../server-api/meta-lead-webhook'),
+  'payment-collections': () => import('../server-api/payment-collections'),
+  'payment-escalation-alert': () => import('../server-api/payment-escalation-alert'),
+  'payment-escalation': () => import('../server-api/payment-escalation'),
+  'payment-ledger': () => import('../server-api/payment-ledger'),
+  'payment-schedule': () => import('../server-api/payment-schedule'),
+  'post-visit-followup': () => import('../server-api/post-visit-followup'),
+  'priority-match-queue': () => import('../server-api/priority-match-queue'),
+  'properties': () => import('../server-api/properties'),
+  'property-history': () => import('../server-api/property-history'),
+  'property-match': () => import('../server-api/property-match'),
+  'push': () => import('../server-api/push'),
+  'referral-request': () => import('../server-api/referral-request'),
+  'review-request': () => import('../server-api/review-request'),
+  'sales-priority-queue': () => import('../server-api/sales-priority-queue'),
+  'site-visit-alert': () => import('../server-api/site-visit-alert'),
+  'site-visit-complete': () => import('../server-api/site-visit-complete'),
+  'site-visit-reminders': () => import('../server-api/site-visit-reminders'),
+  'site-visit-request': () => import('../server-api/site-visit-request'),
+  'visitor': () => import('../server-api/visitor'),
+  'whatsapp-webhook': () => import('../server-api/whatsapp-webhook'),
 };
 
 function routeFromRequest(req: any) {
@@ -101,10 +58,16 @@ function routeFromRequest(req: any) {
 
 export default async function handler(req: any, res: any) {
   const route = routeFromRequest(req);
-  const mod = routes[route];
-  const fn = mod?.default || mod?.handler;
-  if (typeof fn !== 'function') {
-    return res.status(404).json({ error: 'API route not found.', route });
+  const load = loaders[route];
+  if (!load) return res.status(404).json({ error: 'API route not found.', route });
+  try {
+    const mod = await load();
+    const fn = mod?.default || mod?.handler;
+    if (typeof fn !== 'function') {
+      return res.status(500).json({ error: 'API handler is not available.', route });
+    }
+    return fn(req, res);
+  } catch (e: any) {
+    return res.status(500).json({ error: 'API module failed to load.', route, message: String(e?.message || e) });
   }
-  return fn(req, res);
 }
