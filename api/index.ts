@@ -1,6 +1,7 @@
 // Single Vercel entrypoint for the Hobby-plan function limit.
 // Public inventory is handled inline so its customer-facing route has no
 // module-loading dependency and cannot fail during consolidated cold start.
+import siteVisitReminders from '../server-api/site-visit-reminders';
 
 type PublicProperty = {
   id: string;
@@ -97,7 +98,7 @@ const loaders: Record<string, () => Promise<any>> = {
   'sales-priority-queue': () => import('../server-api/sales-priority-queue'),
   'site-visit-alert': () => import('../server-api/site-visit-alert'),
   'site-visit-complete': () => import('../server-api/site-visit-complete'),
-  'site-visit-reminders': () => import('../server-api/site-visit-reminders'),
+  'site-visit-reminders': async () => ({default: siteVisitReminders}),
   'site-visit-request': () => import('../server-api/site-visit-request'),
   'visitor': () => import('../server-api/visitor'),
   'whatsapp-webhook': () => import('../server-api/whatsapp-webhook'),
