@@ -1,7 +1,7 @@
 // Single Vercel entrypoint for the Hobby-plan function limit.
-// Keep route modules lazy-loaded so one unrelated module cannot crash every API
-// route during cold start (for example, an optional dependency used by another
-// sales module). Vercel still bundles the statically analyzable dynamic imports.
+// Inventory is statically bundled because it is a public, customer-facing route.
+// Other sales modules remain lazy-loaded to avoid unrelated cold-start failures.
+import * as inventoryPublic from '../server-api/inventory-public';
 
 const loaders: Record<string, () => Promise<any>> = {
   'ai-lead-assistant': () => import('../server-api/ai-lead-assistant'),
@@ -14,7 +14,7 @@ const loaders: Record<string, () => Promise<any>> = {
   'follow-up-cron': () => import('../server-api/follow-up-cron'),
   'follow-up-push': () => import('../server-api/follow-up-push'),
   'followup-engine': () => import('../server-api/followup-engine'),
-  'inventory-public': () => import('../server-api/inventory-public'),
+  'inventory-public': async () => inventoryPublic,
   'lead-assignment': () => import('../server-api/lead-assignment'),
   'lead-conversion-plan': () => import('../server-api/lead-conversion-plan'),
   'lead-match': () => import('../server-api/lead-match'),
