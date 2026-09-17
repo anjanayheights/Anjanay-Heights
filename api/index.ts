@@ -43,7 +43,7 @@ async function publicInventory(req:any,res:any){
     const bhk=(u.searchParams.get('bhk')||'').match(/\d+/)?.[0]||'';
     const location=(u.searchParams.get('location')||'').trim().toLowerCase();
     const type=(u.searchParams.get('type')||'').trim().toLowerCase();
-    const available=all.filter(p=>p.status.toLowerCase()==='available');
+    const available=all.filter(p=>['available','active'].includes(p.status.trim().toLowerCase()));
     const properties=available.filter(p=>{
       const hay=`${p.title} ${p.propertyType} ${p.location} ${p.price} ${p.area} ${p.bedrooms} ${p.description}`.toLowerCase();
       const nums=String(p.bedrooms||'').match(/\d+(?:\.\d+)?/g)||[];
