@@ -3,7 +3,7 @@ import { createHash, createHmac } from 'node:crypto';
 import { notifyNewLead } from './push.js';
 import { assignLead } from './lead-assignment.js';
 import { sendAssignedLeadAlert } from './assigned-lead-alert.js';
-import { appendVault, readVault, vaultAvailable } from './crm-vault.js';
+import { appendVault, readVault, readVaultRecord, vaultAvailable } from './crm-vault.js';
 
 const blobAuthCandidates = [
   ...(process.env.VERCEL_OIDC_TOKEN && process.env.BLOB_STORE_ID ? [{ oidcToken: process.env.VERCEL_OIDC_TOKEN, storeId: process.env.BLOB_STORE_ID }] : []),
