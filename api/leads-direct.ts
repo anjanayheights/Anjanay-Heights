@@ -28,14 +28,14 @@ function priority(s:number){return s>=75?'Very Hot':s>=55?'Hot':s>=30?'Warm':'Co
 function parseBody(req:any){if(req?.body&&typeof req.body==='object')return req.body;try{return JSON.parse(String(req?.body||'{}'))}catch{return{}}}
 
 export default async function handler(req:any,res:any){
-  if(!authorized(req))return send(res,401,{error:'Unauthorized'});
   if(req.method==='GET'){
+    if(!authorized(req))return send(res,401,{error:'Unauthorized'});
     try{
       const r=await blobList();
       const leads=(await Promise.all((r?.blobs||[]).map((b:any)=>blobRead(b.url).catch(()=>null)))).filter(Boolean);
       return send(res,200,{leads});
     }catch(blobError){
-      try{return send(res,200,{leads:await vaultRead(),storageFallback:'supabase-vault'})}
+      try{return send(res,200,{leads:(await vaultRead()).map((x:any)=>x.value),storageFallback:'supabase-vault'})}
       catch(vaultError){console.error('direct leads GET failed',blobError,vaultError);return send(res,500,{error:'Unable to load leads.'})}
     }
   }
@@ -43,7 +43,7 @@ export default async function handler(req:any,res:any){
     try{
       const b=parseBody(req);const name=String(b.name||'').trim();const rawPhone=String(b.phone||'').trim();
       if(!name||!rawPhone)return send(res,400,{error:'Name and phone are required.'});
-      const lead={id:crypto.randomUUID(),created_at:new Date().toISOString(),name,phone:rawPhone,email:String(b.email||'').trim(),source:String(b.source||b.lead_source||'Website'),property_name:String(b.property_name||'').trim(),property_type:String(b.property_type||'').trim(),location:String(b.location||'').trim(),budget:String(b.budget||'').trim(),timeline:String(b.timeline||'').trim(),requirement:String(b.requirement||'').trim(),message:String(b.message||'').trim(),bhk:String(b.bhk||'').trim()};
+      const lead={id:randomUUID(),created_at:new Date().toISOString(),name,phone:rawPhone,email:String(b.email||'').trim(),source:String(b.source||b.lead_source||'Website'),property_name:String(b.property_name||'').trim(),property_type:String(b.property_type||'').trim(),location:String(b.location||'').trim(),budget:String(b.budget||'').trim(),timeline:String(b.timeline||'').trim(),requirement:String(b.requirement||'').trim(),message:String(b.message||'').trim(),bhk:String(b.bhk||'').trim()};
       let saved=lead;
       try{await put(`leads/phone-${createHash('sha256').update(phone(rawPhone)).digest('hex')}.json`,JSON.stringify(lead),{access:'private',addRandomSuffix:false,contentType:'application/json',allowOverwrite:false,...(blobAuth[0]||{})})}
       catch{try{await vaultWrite(lead)}catch(e){console.error('direct lead vault write failed',e);throw e}}
