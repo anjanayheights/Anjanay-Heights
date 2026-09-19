@@ -34,7 +34,7 @@ export default function AutomationControlCenter(){
         <p className="mt-1 text-sm text-slate-600">Daily order: urgent leads → follow-ups → site visits → hot inventory → social sharing.</p>
         <div className="mt-4 flex flex-wrap gap-2">
           <a href="/admin/sales-cockpit" className="rounded-xl bg-[#1A365D] px-4 py-2.5 text-sm font-bold text-white">🎯 Action Queue</a>
-          <a href="/admin/followup-automation" className="rounded-xl bg-white border px-4 py-2.5 text-sm font-semibold">⏰ Due Follow-ups</a>
+          <a href="/admin/followup-automation" className="rounded-xl bg-white border px-4 py-2.5 text-sm font-semibold">⏰ Due Follow-ups</a><a href="/admin/matches" className="rounded-xl bg-white border px-4 py-2.5 text-sm font-semibold">🏠 Match Leads → Properties</a>
           <a href="/admin/site-visits" className="rounded-xl bg-white border px-4 py-2.5 text-sm font-semibold">📅 Site Visits</a>
           <a href="/admin/properties" className="rounded-xl bg-white border px-4 py-2.5 text-sm font-semibold">🔥 Hot Inventory</a>
           <a href="/admin/social-sharing" className="rounded-xl bg-white border px-4 py-2.5 text-sm font-semibold">📣 Share Hot Properties</a>
