@@ -21,9 +21,9 @@ type PublicProperty = {
 
 const ITEM_PREFIX='crm/properties/item-';
 const blobAuthCandidates:Record<string,string>[]=[
-  {},
-  ...(process.env.VERCEL_OIDC_TOKEN&&process.env.BLOB_STORE_ID?[{oidcToken:process.env.VERCEL_OIDC_TOKEN,storeId:process.env.BLOB_STORE_ID}]:[]),
-  ...(process.env.BLOB_READ_WRITE_TOKEN?[{token:process.env.BLOB_READ_WRITE_TOKEN}]:[])
+  ...(process.env.VERCEL_OIDC_TOKEN?[{token:process.env.VERCEL_OIDC_TOKEN}]:[]),
+  ...(process.env.BLOB_READ_WRITE_TOKEN?[{token:process.env.BLOB_READ_WRITE_TOKEN}]:[]),
+  {}
 ];
 
 async function withBlobAuth<T>(op:(auth:Record<string,string>)=>Promise<T>):Promise<T>{
