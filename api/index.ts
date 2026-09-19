@@ -73,6 +73,14 @@ async function readPublicProperties():Promise<PublicProperty[]>{
   return out;
 }
 
+async function crmAuth(req:any,res:any){
+  if(req.method!=='GET')return json(res,405,{error:'Method not allowed'});
+  const password=process.env.DASHBOARD_PASSWORD||'';
+  const authorization=String(req?.headers?.authorization||'');
+  if(!password||authorization!==`Bearer ${password}`)return json(res,401,{error:'Unauthorized'});
+  return json(res,200,{ok:true});
+}
+
 async function publicInventory(req:any,res:any){
   if(req.method!=='GET')return json(res,405,{error:'Method not allowed'});
   try{
@@ -108,6 +116,7 @@ const loaders: Record<string, () => Promise<any>> = {
   'follow-up-push': () => import('../server-api/follow-up-push.js'),
   'followup-engine': () => import('../server-api/followup-engine.js'),
   'inventory-public': async () => ({default: publicInventory}),
+  'auth': async () => ({default: crmAuth}),
   'lead-assignment': () => import('../server-api/lead-assignment.js'),
   'lead-conversion-plan': () => import('../server-api/lead-conversion-plan.js'),
   'lead-match': () => import('../server-api/lead-match.js'),
