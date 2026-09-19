@@ -1,5 +1,5 @@
 import { get, list, put } from '@vercel/blob';
-import { createHash, createHmac, createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'node:crypto';
+import { createHash, createHmac, createCipheriv, createDecipheriv, randomBytes, randomUUID, scryptSync } from 'node:crypto';
 
 const SUPABASE_URL='https://xctxqausjucirnxmmjrp.supabase.co';
 const SUPABASE_KEY='sb_publishable__2iHvDMRRfVzkPYAQfQI6Q_7Df0v2UF';
