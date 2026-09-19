@@ -20,11 +20,7 @@ type PublicProperty = {
 };
 
 const ITEM_PREFIX='crm/properties/item-';
-const blobAuthCandidates:Record<string,string>[]=[
-  ...(process.env.VERCEL_OIDC_TOKEN?[{token:process.env.VERCEL_OIDC_TOKEN}]:[]),
-  ...(process.env.BLOB_READ_WRITE_TOKEN?[{token:process.env.BLOB_READ_WRITE_TOKEN}]:[]),
-  {}
-];
+const blobAuthCandidates:Record<string,string>[]=[{}];
 
 async function withBlobAuth<T>(op:(auth:Record<string,string>)=>Promise<T>):Promise<T>{
   let last:any=new Error('No Vercel Blob credentials configured.');
