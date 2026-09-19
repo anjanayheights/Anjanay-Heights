@@ -1,11 +1,30 @@
 {
   "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/index?route=:path*" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    {
+      "source": "/api/leads",
+      "destination": "/api/leads-direct"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "/api/index?route=:path*"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
   ],
   "crons": [
-    { "path": "/api/follow-up-cron", "schedule": "0 3 * * *" },
-    { "path": "/api/follow-up-automation", "schedule": "15 3 * * *" },
-    { "path": "/api/payment-escalation-alert", "schedule": "30 3 * * *" }
+    {
+      "path": "/api/follow-up-cron",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/follow-up-automation",
+      "schedule": "15 3 * * *"
+    },
+    {
+      "path": "/api/payment-escalation-alert",
+      "schedule": "30 3 * * *"
+    }
   ]
 }
