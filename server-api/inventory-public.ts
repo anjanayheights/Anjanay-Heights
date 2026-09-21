@@ -19,7 +19,7 @@ type Property = {
 };
 
 const SUPABASE_URL = 'https://xctxqausjucirnxmmjrp.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable__2iHvDMRRfVzkPYAQfQI6Q_7Df0v2UF';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjdHhxYXVzanVjaXJueG1tanJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMjA4ODAsImV4cCI6MjEwNDc5Njg4MH0.L-tVG1EYLlnMFuiE9f2oIao-0lMpyh4tM50tYrHes7c';
 
 function send(res: any, status: number, body: unknown) {
   return res.status(status).setHeader('Cache-Control', 'no-store').setHeader('Pragma', 'no-cache').json(body);
