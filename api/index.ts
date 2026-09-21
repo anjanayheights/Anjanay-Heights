@@ -80,23 +80,45 @@ async function crmAuth(req:any,res:any){
 async function publicInventory(req:any,res:any){
   if(req.method!=='GET')return json(res,405,{error:'Method not allowed'});
   try{
-    const all=await readPublicProperties();
+    const supabaseUrl='https://xctxqausjucirnxmmjrp.supabase.co';
+    const supabaseAnonKey='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjdHhxYXVzanVjaXJueG1tanJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMjA4ODAsImV4cCI6MjEwNDc5Njg4MH0.L-tVG1EYLlnMFuiE9f2oIao-0lMpyh4tM50tYrHes7c';
+    const endpoint=supabaseUrl+'/rest/v1/properties?select=id,name,location,property_type,status,price,area,configuration,source_url,video_url,photos_url,verification_status,verification_notes,created_at,updated_at,hot_score,is_public&status=eq.active&verification_status=eq.verified&is_public=eq.true';
+    const r=await fetch(endpoint,{headers:{apikey:supabaseAnonKey,Authorization:'Bearer '+supabaseAnonKey}});
+    if(!r.ok)throw new Error('Supabase inventory unavailable ('+r.status+')');
+    const rows:any[]=await r.json();
+    const all=rows.map(p=>({
+      id:String(p?.id||''),
+      title:String(p?.name||'Property'),
+      propertyType:String(p?.property_type||''),
+      location:String(p?.location||''),
+      price:String(p?.price||''),
+      area:String(p?.area||''),
+      bedrooms:String(p?.configuration||''),
+      status:'Available',
+      description:String(p?.verification_notes||''),
+      createdAt:String(p?.created_at||p?.updated_at||''),
+      lastVerified:String(p?.updated_at||p?.created_at||''),
+      verificationStatus:'Verified',
+      photos:typeof p?.photos_url==='string'&&/\\.(jpe?g|png|webp|avif)(\\?.*)?$/i.test(p.photos_url.trim())?[p.photos_url.trim()]:[],
+      videoUrl:String(p?.video_url||''),
+      isHot:Number(p?.hot_score||0)>=70
+    })).filter(p=>p.id);
     const u=new URL(String(req.url||'/'),'http://localhost');
     const q=(u.searchParams.get('q')||'').trim().toLowerCase();
-    const bhk=(u.searchParams.get('bhk')||'').match(/\d+/)?.[0]||'';
+    const bhk=(u.searchParams.get('bhk')||'').match(/\\d+/)?.[0]||'';
     const location=(u.searchParams.get('location')||'').trim().toLowerCase();
     const type=(u.searchParams.get('type')||'').trim().toLowerCase();
-    const available=all.filter(p=>p.status.trim().toLowerCase()==='available');
+    const available=all;
     const properties=available.filter(p=>{
-      const hay=`${p.title} ${p.propertyType} ${p.location} ${p.price} ${p.area} ${p.bedrooms} ${p.description}`.toLowerCase();
-      const nums=String(p.bedrooms||'').match(/\d+(?:\.\d+)?/g)||[];
-      return (!q||hay.includes(q))&&(!location||p.location.toLowerCase().includes(location))&&
-        (!type||p.propertyType.toLowerCase().includes(type))&&(!bhk||nums.includes(bhk));
+      const hay=(p.title+' '+p.propertyType+' '+p.location+' '+p.price+' '+p.area+' '+p.bedrooms+' '+p.description).toLowerCase();
+      const nums=String(p.bedrooms||'').match(/\\d+(?:\\.\\d+)?/g)||[];
+      const typeMatch=!type||p.propertyType.toLowerCase().includes(type)|| (type==='residential'&&/residential|apartment|flat|villa/.test(p.propertyType.toLowerCase())) || (type==='commercial'&&/commercial|office|shop|retail/.test(p.propertyType.toLowerCase())) || (type==='plot'&&/plot|land/.test(p.propertyType.toLowerCase())) || (type==='hospital'&&/hospital|healthcare|institutional/.test(p.propertyType.toLowerCase()));
+      return (!q||hay.includes(q))&&(!location||p.location.toLowerCase().includes(location))&&typeMatch&&(!bhk||nums.includes(bhk));
     }).sort((a,b)=>new Date(b.createdAt).getTime()-new Date(a.createdAt).getTime())
-      .map(p=>({...p,minBudget:null,maxBudget:null,marketOpportunity:/third-party|market opportunity|researched/i.test(p.description)}));
-    return json(res,200,{properties,availableCount:available.length,totalCount:all.length,updatedAt:new Date().toISOString(),source:'crm-property-inventory'});
+      .map(p=>({...p,minBudget:null,maxBudget:null,marketOpportunity:false}));
+    return json(res,200,{properties,availableCount:available.length,totalCount:available.length,updatedAt:new Date().toISOString(),source:'supabase-verified-inventory'});
   }catch(e:any){
-    return json(res,200,{properties:[],availableCount:0,totalCount:0,updatedAt:new Date().toISOString(),inventoryUnavailable:true,error:String(e?.message||'Unable to load live inventory.')});
+    return json(res,200,{properties:[],availableCount:0,totalCount:0,updatedAt:new Date().toISOString(),inventoryUnavailable:true,error:'Live inventory is temporarily unavailable.'});
   }
 }
 
