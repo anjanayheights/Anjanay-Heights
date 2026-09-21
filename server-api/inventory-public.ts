@@ -51,7 +51,7 @@ async function readSupabase(): Promise<Property[]> {
     createdAt: String(p?.created_at || p?.updated_at || new Date(0).toISOString()),
     lastVerified: String(p?.updated_at || p?.created_at || ''),
     verificationStatus: 'Verified',
-    photos: p?.photos_url ? [String(p.photos_url)] : [],
+    photos: typeof p?.photos_url === 'string' && /\.(jpe?g|png|webp|avif)(\?.*)?$/i.test(p.photos_url.trim()) ? [p.photos_url.trim()] : Array.isArray(p?.photos_url) ? p.photos_url.filter((u: unknown) => typeof u === 'string' && /\.(jpe?g|png|webp|avif)(\?.*)?$/i.test(u.trim())) : [],
     videoUrl: String(p?.video_url || ''),
     isHot: Number(p?.hot_score || 0) >= 70,
   })).filter((p) => p.id);
