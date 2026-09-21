@@ -31,7 +31,7 @@ async function readSupabase(): Promise<Property[]> {
     headers: {
       // Supabase publishable keys are passed via the apikey header.
       // Do not send the non-JWT publishable key as a Bearer token.
-      apikey: SUPABASE_PUBLISHABLE_KEY,
+      apikey: SUPABASE_ANON_KEY,
     },
   });
   if (!r.ok) throw new Error(`Supabase inventory unavailable (${r.status})`);
