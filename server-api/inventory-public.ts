@@ -29,8 +29,9 @@ async function readSupabase(): Promise<Property[]> {
   const url = `${SUPABASE_URL}/rest/v1/properties?select=id,name,location,property_type,status,price,area,configuration,source_url,video_url,photos_url,verification_status,verification_notes,created_at,updated_at,hot_score,is_public&status=eq.active&verification_status=eq.verified&is_public=eq.true`;
   const r = await fetch(url, {
     headers: {
+      // Supabase publishable keys are passed via the apikey header.
+      // Do not send the non-JWT publishable key as a Bearer token.
       apikey: SUPABASE_PUBLISHABLE_KEY,
-      Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
     },
   });
   if (!r.ok) throw new Error(`Supabase inventory unavailable (${r.status})`);
