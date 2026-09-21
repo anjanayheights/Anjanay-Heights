@@ -24,18 +24,31 @@ function whatsappUrl(p: Property) {
   )}`;
 }
 
-function fallbackImage(type: string) {
-  const value = type.toLowerCase();
-  if (value.includes('hospital') || value.includes('healthcare')) return 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&w=900&q=80';
-  if (value.includes('commercial') || value.includes('office') || value.includes('shop')) return 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=900&q=80';
-  if (value.includes('plot') || value.includes('land')) return 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=900&q=80';
-  return 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=900&q=80';
-}
-
 function formatVerifiedDate(value?: string) {
   if (!value) return 'Recently verified';
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? 'Recently verified' : `Verified ${date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}`;
+  if (Number.isNaN(date.getTime())) return 'Recently verified';
+  return 'Verified ' + date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function matchesType(propertyType: string, wanted: string) {
+  if (wanted === 'All Types') return true;
+  const value = propertyType.toLowerCase();
+  const target = wanted.toLowerCase();
+  if (target === 'residential') return /flat|apartment|villa|residential/.test(value);
+  if (target === 'commercial') return /commercial|office|shop|retail/.test(value);
+  if (target === 'plot') return /plot|land/.test(value);
+  if (target === 'hospital') return /hospital|healthcare|institutional/.test(value);
+  return value.includes(target);
+}
+
+function matchesPrice(priceValue: string, wanted: string) {
+  if (wanted === 'All Prices') return true;
+  const price = priceValue.toLowerCase();
+  if (wanted === 'Under ₹1 Cr') return /lakh|lakhs/.test(price) && !price.includes('cr');
+  if (wanted === '₹1 Cr – ₹3 Cr') return /1(?:\.\d+)?\s*cr|2(?:\.\d+)?\s*cr|₹1\s*cr|₹2\s*cr/.test(price);
+  if (wanted === 'Above ₹3 Cr') return /3(?:\.\d+)?\s*cr|4(?:\.\d+)?\s*cr|5(?:\.\d+)?\s*cr|6(?:\.\d+)?\s*cr|10\s*cr|20\s*cr|40\s*cr|50\s*cr|55\s*cr|60\s*cr|90\s*cr|100\s*cr/.test(price);
+  return true;
 }
 
 export default function FeaturedProperties() {
@@ -47,24 +60,35 @@ export default function FeaturedProperties() {
   const [inventoryUnavailable, setInventoryUnavailable] = useState(false);
 
   useEffect(() => {
-    let cancelled = false;
+    let active = true;
     fetch('/api/inventory-public')
-      .then((r) => r.json())
-      .then((data) => {
-        if (cancelled) return;
-        setProperties(Array.isArray(data?.properties) ? data.properties : []);
-        setInventoryUnavailable(Boolean(data?.inventoryUnavailable));
+      .then((response) => {
+        if (!response.ok) throw new Error('Inventory request failed');
+        return response.json();
+      })
+      .then((data: { properties?: Property[]; inventoryUnavailable?: boolean }) => {
+        if (!active) return;
+        setProperties(Array.isArray(data.properties) ? data.properties : []);
+        setInventoryUnavailable(Boolean(data.inventoryUnavailable));
       })
       .catch(() => {
-        if (!cancelled) {
-          setProperties([]);
-          setInventoryUnavailable(true);
-        }
+        if (!active) return;
+        setProperties([]);
+        setInventoryUnavailable(true);
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (active) setLoading(false);
       });
-    return () => { cancelled = true; };
+    return () => { active = false; };
+  }, []);
+
+  const filteredProperties = useMemo(() => properties.filter((property) => {
+    if (!matchesType(property.propertyType, filterType)) return false;
+    if (filterLocation !== 'All Locations' && !property.location.toLowerCase().includes(filterLocation.toLowerCase())) return false;
+    return matchesPrice(property.price, filterPrice);
+  }), [properties, filterType, filterLocation, filterPrice]);
+
+  return () => { cancelled = true; };
   }, []);
 
   const filteredProperties = useMemo(() => properties.filter((p) => {
