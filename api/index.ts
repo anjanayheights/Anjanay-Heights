@@ -134,6 +134,7 @@ const loaders: Record<string, () => Promise<any>> = {
   'follow-up-push': () => import('../server-api/follow-up-push.js'),
   'followup-engine': () => import('../server-api/followup-engine.js'),
   'inventory-public': async () => ({default: publicInventory}),
+  'instagram-auto-post': () => import('../server-api/instagram-auto-post.js'),
   'auth': async () => ({default: crmAuth}),
   'lead-assignment': () => import('../server-api/lead-assignment.js'),
   'lead-conversion-plan': () => import('../server-api/lead-conversion-plan.js'),
