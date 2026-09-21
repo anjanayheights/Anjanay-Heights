@@ -25,6 +25,10 @@
     {
       "path": "/api/payment-escalation-alert",
       "schedule": "30 3 * * *"
+    },
+    {
+      "path": "/api/instagram-auto-post",
+      "schedule": "45 3 * * *"
     }
   ]
 }
