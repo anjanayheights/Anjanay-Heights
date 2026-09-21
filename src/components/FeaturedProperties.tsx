@@ -88,43 +88,6 @@ export default function FeaturedProperties() {
     return matchesPrice(property.price, filterPrice);
   }), [properties, filterType, filterLocation, filterPrice]);
 
-  return () => { cancelled = true; };
-  }, []);
-
-  const filteredProperties = useMemo(() => properties.filter((p) => {
-    const type = p.propertyType.toLowerCase();
-    const location = p.location.toLowerCase();
-
-    if (filterType !== 'All Types') {
-      const wanted = filterType.toLowerCase();
-      const matches = wanted === 'residential'
-        ? /flat|apartment|villa|residential/.test(type)
-        : wanted === 'commercial'
-          ? /commercial|office|shop|retail/.test(type)
-          : wanted === 'plot'
-            ? /plot|land/.test(type)
-            : wanted === 'hospital'
-              ? /hospital|healthcare/.test(type)
-              : type.includes(wanted);
-      if (!matches) return false;
-    }
-
-    if (filterLocation !== 'All Locations' && !location.includes(filterLocation.toLowerCase())) return false;
-
-    if (filterPrice !== 'All Prices') {
-      const price = p.price.toLowerCase();
-      const hasCr = price.includes('cr');
-      const lakh = /l|lakh/.test(price) && !hasCr;
-      const oneToThree = /1\.|2\.|₹1 cr|₹2 cr|1 cr|2 cr/.test(price);
-      const aboveThree = /3 cr|4 cr|5 cr|6 cr|10 cr|20 cr|40 cr|50 cr|55 cr|60 cr|90 cr|100 cr/.test(price);
-      if (filterPrice === 'Under ₹1 Cr' && !lakh) return false;
-      if (filterPrice === '₹1 Cr – ₹3 Cr' && !oneToThree) return false;
-      if (filterPrice === 'Above ₹3 Cr' && !aboveThree) return false;
-    }
-
-    return true;
-  }), [properties, filterType, filterLocation, filterPrice]);
-
   return (
     <section id="properties" className="py-20 bg-[#F9F9F7] border-t border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
