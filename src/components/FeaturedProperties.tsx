@@ -1,105 +1,354 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
 const WHATSAPP = '919289771222';
-const RESEARCH_DATE = '11 Sep 2026';
 
 type Property = {
-  id: string; name: string; type: string; location: string; price: string; area: string;
-  config: string; image: string; source: string; sourceLabel: string; note: string;
+  id: string;
+  title: string;
+  propertyType: string;
+  location: string;
+  price: string;
+  area: string;
+  bedrooms: string;
+  photos?: string[];
+  description?: string;
+  lastVerified?: string;
+  isHot?: boolean;
 };
 
-const properties: Property[] = [
-  { id:'market-paradise-shree-ram', name:'Paradise Shree Ram Vatika', type:'Villa', location:'Noida Extension, Greater Noida', price:'₹58.5 L – ₹73.01 L', area:'675 sq ft', config:'2.5 & 3.5 BHK', image:'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=900&q=80', source:'https://housing.com/in/buy/greater-noida/projects/', sourceLabel:'Housing.com', note:'Indicative market price; availability to be reconfirmed.' },
-  { id:'market-vihaan-wardania', name:'Vihaan Wardania', type:'Residential', location:'Noida Extension, Greater Noida', price:'₹47.99 L – ₹64.99 L', area:'1100 sq ft', config:'Residential flats', image:'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=900&q=80', source:'https://housing.com/in/buy/greater-noida/projects/', sourceLabel:'Housing.com', note:'Indicative market price; availability to be reconfirmed.' },
-  { id:'market-crc-joyous', name:'CRC Joyous', type:'Residential', location:'Techzone 4, Greater Noida West', price:'₹1.32 Cr – ₹2.26 Cr', area:'1040 sq ft+', config:'Residential flats', image:'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=900&q=80', source:'https://housing.com/in/buy/greater-noida/projects/', sourceLabel:'Housing.com', note:'Indicative market price; availability to be reconfirmed.' },
-  { id:'market-godrej-arden', name:'Godrej Arden', type:'Residential', location:'Sigma III, Greater Noida', price:'₹2.30 Cr – ₹4.40 Cr', area:'1375 sq ft+', config:'Premium residences', image:'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?auto=format&fit=crop&w=900&q=80', source:'https://housing.com/in/buy/greater-noida/projects/', sourceLabel:'Housing.com', note:'Indicative market price; availability to be reconfirmed.' },
-  { id:'market-nbcc-aspire', name:'NBCC Aspire Eternia Residences', type:'Residential', location:'Techzone 4, Greater Noida', price:'₹1.71 Cr – ₹2.33 Cr', area:'—', config:'3 & 4 BHK', image:'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=80', source:'https://www.magicbricks.com/residential-projects-in--greater-noida-nprid', sourceLabel:'MagicBricks', note:'Under construction; price and availability to be reconfirmed.' },
+function whatsappUrl(property: Property) {
+  const message =
+    'Hello Anjanay Heights, I am interested in ' +
+    property.title +
+    ' in ' +
+    property.location +
+    '. Please confirm current availability, exact price and site visit options.';
+  return 'https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent(message);
+}
 
-  { id:'market-ncr-monarch', name:'NCR Monarch', type:'Residential', location:'Sector 1, Greater Noida West', price:'₹85.77 Lakhs onwards*', area:'1075 sq ft+', config:'2/3 BHK', image:'https://images.unsplash.com/photo-1600607688969-a5bfcd646154?auto=format&fit=crop&w=900&q=80', source:'https://www.ncrmonarch.in/', sourceLabel:'NCR Monarch project site', note:'Freshly verified market opportunity. RERA UPRERAPRJ4790; official site lists possession 2026. Representative image only — use the public source for project media. Price/availability must be reconfirmed; third-party opportunity.' },
-  { id:'market-godrej-majesty', name:'Godrej Majesty', type:'Residential', location:'Sector 12, Greater Noida West', price:'₹3.56 Cr onwards*', area:'—', config:'3 & 4 BHK', image:'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?auto=format&fit=crop&w=900&q=80', source:'https://www.godrejproperties.com/noida/residential/godrej-majesty', sourceLabel:'Godrej Properties', note:'Freshly verified market opportunity. RERA UPRERAPRJ250823/04/2025; possession January 2030. Official source includes project walkthrough/location/concept media. Price/availability must be reconfirmed; third-party opportunity.' },
-  { id:'market-vvip-addresses', name:'VVIP Addresses Greater Noida West', type:'Residential', location:'Sector 12, Noida Extension, Greater Noida', price:'₹3.81 Cr–₹5.99 Cr', area:'2955–4645 sq ft', config:'3/4 BHK', image:'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=900&q=80', source:'https://housing.com/in/buy/projects/page/335048-vvip-addresses-greater-noida-west-by-vibhor-vaibhav-infrahome-pvt-ltd-in-noida-extension', sourceLabel:'Housing.com', note:'Freshly verified market opportunity. RERA UPRERAPRJ600767/11/2024; possession Sep 2029. Housing source includes project-tour media. Representative image only; price/availability must be reconfirmed.' },
-  { id:'market-yeida-rps02', name:'YEIDA RPS 02 Residential Plot', type:'Residential Plot', location:'Sector 17, YEIDA, Yamuna Expressway, Greater Noida', price:'₹80 Lakhs', area:'170 sq m', config:'East-facing; 17m × 10m; 12m road', image:'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=900&q=80', source:'https://housing.com/in/buy/resale/page/17181641-residential-plot-in-yeida-for-rs-8000000-v2', sourceLabel:'Housing.com', note:'Freshly verified resale opportunity. Listing updated Aug 30 2026 and states immediate possession/registered plot. Exact plot, title and availability must be reconfirmed. Representative image only; no unrelated video attached.' },
-  { id:'market-ace-yxp', name:'ACE YXP Commercial', type:'Commercial Land', location:'Sector 22D, Yamuna Expressway, Greater Noida', price:'₹86.58 Lakhs–₹3.30 Cr*', area:'4-acre project', config:'Retail shops / Studio', image:'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=900&q=80', source:'https://acegroupindia.com/ace-yxp.php', sourceLabel:'ACE Group India', note:'Freshly verified market opportunity. RERA UPRERAPRJ397607; project sources list possession March 2027. Official source has a project walkthrough; no unverified direct video URL attached. Price/availability must be reconfirmed.' },
+function verifiedDate(value?: string) {
+  if (!value) return 'Recently verified';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Recently verified';
+  return 'Verified ' + date.toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+}
 
-  { id:'commercial-noida-ext-1512', name:'Commercial Plot – Sector 3', type:'Commercial Land', location:'Sector 3, Noida Extension, Greater Noida', price:'₹1.10 Cr', area:'1,512 sq ft', config:'Commercial zone; leasehold', image:'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=900&q=80', source:'https://housing.com/commercial/buy/resale/100613274-commercial-plot-for-sale-in-noida-extension-greater-noida-2-for-rs-11000000', sourceLabel:'Housing.com', note:'Public listing checked recently. Verify title, lease terms, land use, dues and current availability.' },
-  { id:'commercial-noida-ext-1440', name:'Commercial Plot – Knowledge Park 5', type:'Commercial Land', location:'Knowledge Park 5, Noida Extension, Greater Noida', price:'₹80 L', area:'1,440 sq ft', config:'Commercial zone; leasehold', image:'https://images.unsplash.com/photo-1449157291145-7efd050a4d0e?auto=format&fit=crop&w=900&q=80', source:'https://housing.com/commercial/buy/resale/100453901-commercial-plot-for-sale-in-noida-extension-greater-noida-2-for-rs-8000000', sourceLabel:'Housing.com', note:'Public listing checked recently. Verify title, land use, approvals, dues and current availability.' },
-  { id:'commercial-noida-ext-650', name:'Commercial Plot – Sector 10', type:'Commercial Land', location:'Sector 10, Noida Extension, Greater Noida', price:'₹54 L', area:'650 sq ft', config:'Public listing; zone details to verify', image:'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=900&q=80', source:'https://housing.com/commercial/buy/resale/100612945-commercial-plot-for-sale-in-noida-extension-greater-noida-2-for-rs-5400000', sourceLabel:'Housing.com', note:'Listing describes a commercial plot but zone fields should be independently verified before marketing.' },
-  { id:'commercial-yeida-300', name:'Commercial Land – YEIDA Corridor', type:'Commercial Land', location:'Yamuna Expressway, Greater Noida', price:'₹1.70 Cr', area:'300 sq m', config:'Leasehold; 40 m road; 3 open sides', image:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80', source:'https://www.magicbricks.com/propertyDetails/300-Sq-m-Commercial-Land-FOR-Sale-Yamuna-Expressway-in-Greater-Noida%26id%3D4d423836323930363931', sourceLabel:'MagicBricks', note:'Public listing: Sector 32, Yamuna Expressway corridor. Verify YEIDA records, title/lease, dues and current availability.' },
-  { id:'commercial-yeida-1000', name:'Commercial / Industrial Plot – YEIDA', type:'Commercial Land', location:'Yamuna Expressway, Greater Noida', price:'₹6 Cr', area:'10,760 sq ft (~1,000 sq m)', config:'YEIDA authority plot; public listing says approved', image:'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=900&q=80', source:'https://www.magicbricks.com/commercial-land-for-sale-in-yamuna-expressway-greater-noida-pppfs', sourceLabel:'MagicBricks', note:'Public listing highlights proximity to Jewar Airport and Film City. Verify authority records, permitted use and availability.' },
-  { id:'commercial-yeida-300-re', name:'Commercial Land – Yamuna Expressway', type:'Commercial Land', location:'Yamuna Expressway, Greater Noida', price:'₹2 Cr', area:'300 sq m', config:'YEIDA authority plot; leasehold', image:'https://images.unsplash.com/photo-1460472178825-e5240623afd5?auto=format&fit=crop&w=900&q=80', source:'https://www.realestateindia.com/greaternoida-property/commercial-lands-for-sale-price-1-crore-to-2-crores.htm', sourceLabel:'RealEstateIndia', note:'Public resale listing near Film City/Jewar Airport. Verify exact plot, authority records and current asking price.' },
-  { id:'commercial-yeida-1000-re', name:'Commercial Land – Yamuna Expressway', type:'Commercial Land', location:'Yamuna Expressway, Greater Noida', price:'₹4 Cr', area:'1,000 sq m', config:'Resale; commercial/industrial listing', image:'https://images.unsplash.com/photo-1511818966892-d7d671e672a2?auto=format&fit=crop&w=900&q=80', source:'https://www.realestateindia.com/greaternoida-property/commercial-lands-for-sale-in-yamuna-expressway.htm', sourceLabel:'RealEstateIndia', note:'Public listing. Verify exact location, zoning, title/lease, dues and current availability.' },
-  { id:'commercial-yeida-430', name:'Commercial Land – Yamuna Expressway', type:'Commercial Land', location:'Yamuna Expressway, Greater Noida', price:'₹2.50 Cr', area:'430 sq m', config:'Commercial land; resale listing', image:'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=900&q=80', source:'https://www.realestateindia.com/greaternoida-property/commercial-lands-for-sale-in-yamuna-expressway.htm', sourceLabel:'RealEstateIndia', note:'Public listing. Verify exact plot, permitted use, authority records and current availability.' },
+function matchesType(value: string, wanted: string) {
+  if (wanted === 'All Types') return true;
+  const type = value.toLowerCase();
+  const target = wanted.toLowerCase();
+  if (target === 'residential') return /flat|apartment|villa|residential/.test(type);
+  if (target === 'commercial') return /commercial|office|shop|retail/.test(type);
+  if (target === 'plot') return /plot|land/.test(type);
+  if (target === 'hospital') return /hospital|healthcare|institutional/.test(type);
+  return type.includes(target);
+}
 
-  { id:'market-hospital-gamma2', name:'Fully Operational Hospital', type:'Hospital', location:'Gamma-2, Greater Noida', price:'₹40 Cr', area:'18,000 sq ft built-up', config:'Bed count not stated publicly; B+3', image:'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&w=900&q=80', source:'https://roundspaces.com/property/🏥-fully-operational-hospital-for-sale-in-gamma-2-greater-noida/', sourceLabel:'Roundspaces', note:'Public listing does not state bed count. Verify bed capacity, title, licences, equipment and availability.' },
-  { id:'market-hospital-gamma2-35', name:'35-Bed Multi-Specialty Hospital', type:'Hospital', location:'Gamma-2, Greater Noida', price:'Contact for current asking price', area:'Public listing', config:'35 installed beds + capacity for 15 more', image:'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=900&q=80', source:'https://www.smergers.com/hospitals-for-sale-in-india/c33s722t2b/?ordering=-first_approved_date&page=2', sourceLabel:'SMERGERS', note:'Public listing states 35 installed beds with capacity for 15 additional beds. Verify current status and asking price.' },
-  { id:'market-hospital-gurgaon-106', name:'100 Beds Hospital', type:'Hospital', location:'Sector 106, Gurgaon', price:'₹100 Cr', area:'1.25 acres / ~32,500 sq ft covered', config:'100 beds; B+5', image:'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=900&q=80', source:'https://manchandarealtors.com/hospital-for-sale-in-gurgaon/', sourceLabel:'Manchanda Realtors', note:'Public listing states 100 beds. Verify CLU, title, approvals, equipment and availability.' },
-  { id:'market-hospital-faridabad-75', name:'Hospital / Healthcare Land', type:'Hospital', location:'Sector 75, Faridabad', price:'₹60 Cr', area:'8,000 sq yd', config:'Bed count not stated publicly', image:'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=900&q=80', source:'https://rockland-co.wixsite.com/india-business/hospital-sale-lease-management-land-building-healthcare-merger', sourceLabel:'Public market listing', note:'No reliable public bed count found. Verify land-use, title, approvals and development potential.' },
-  { id:'market-hospital-faridabad-76', name:'Hospital / Healthcare Land', type:'Hospital', location:'Sector 76, Faridabad', price:'₹90 Cr', area:'12,000 sq yd', config:'Bed count not stated publicly', image:'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?auto=format&fit=crop&w=900&q=80', source:'https://rockland-co.wixsite.com/india-business/hospital-sale-lease-management-land-building-healthcare-merger', sourceLabel:'Public market listing', note:'No reliable public bed count found. Verify land-use, title, approvals and development potential.' },
-  { id:'direct-hospital-faridabad', name:'100 Beds Hospital', type:'Hospital', location:'Faridabad', price:'₹55 Cr', area:'3000 sq yard', config:'100 beds', image:'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&w=900&q=80', source:'', sourceLabel:'Anjanay Heights direct inventory', note:'Direct inventory — contact sales for current availability.' },
-  { id:'direct-commercial-haridwar', name:'110 Bigha Commercial Land', type:'Commercial Land', location:'Haridwar', price:'₹47 Lakhs/Bigha', area:'110 Bigha', config:'Commercial land', image:'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=900&q=80', source:'', sourceLabel:'Anjanay Heights direct inventory', note:'Direct inventory — contact sales for current availability.' },
-  { id:'direct-flat-greater-noida', name:'710 sq ft Flat', type:'Flat', location:'Sector 1, Aminabad, Greater Noida', price:'₹40 Lakhs', area:'710 sq ft', config:'Flat', image:'https://images.unsplash.com/photo-1600607688969-a5bfcd646154?auto=format&fit=crop&w=900&q=80', source:'', sourceLabel:'Anjanay Heights direct inventory', note:'Direct inventory — contact sales for current availability.' },
-];
-
-function whatsappUrl(p: Property) {
-  return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hello Anjanay Heights, I am interested in ${p.name} in ${p.location}. Please confirm current availability, exact price and site visit options.`)}`;
+function matchesPrice(value: string, wanted: string) {
+  if (wanted === 'All Prices') return true;
+  const price = value.toLowerCase();
+  if (wanted === 'Under ₹1 Cr') return /lakh|lakhs/.test(price) && !price.includes('cr');
+  if (wanted === '₹1 Cr – ₹3 Cr') {
+    return /1(?:\.\d+)?\s*cr|2(?:\.\d+)?\s*cr|₹1\s*cr|₹2\s*cr/.test(price);
+  }
+  if (wanted === 'Above ₹3 Cr') {
+    return /3(?:\.\d+)?\s*cr|4(?:\.\d+)?\s*cr|5(?:\.\d+)?\s*cr|6(?:\.\d+)?\s*cr|7(?:\.\d+)?\s*cr|8(?:\.\d+)?\s*cr|9(?:\.\d+)?\s*cr|10\s*cr|20\s*cr|40\s*cr|50\s*cr|55\s*cr|60\s*cr|90\s*cr|100\s*cr/.test(price);
+  }
+  return true;
 }
 
 export default function FeaturedProperties() {
+  const [properties, setProperties] = useState<Property[]>([]);
   const [filterType, setFilterType] = useState('All Types');
   const [filterLocation, setFilterLocation] = useState('All Locations');
   const [filterPrice, setFilterPrice] = useState('All Prices');
+  const [loading, setLoading] = useState(true);
+  const [inventoryUnavailable, setInventoryUnavailable] = useState(false);
 
-  const filteredProperties = useMemo(() => properties.filter((p) => {
-    if (filterType !== 'All Types' && p.type !== filterType) return false;
-    if (filterLocation !== 'All Locations' && !p.location.includes(filterLocation)) return false;
-    if (filterPrice !== 'All Prices') {
-      const price = p.price.toLowerCase();
-      const under = price.includes('l') && !price.includes('cr');
-      const mid = price.includes('1.') || price.includes('2.') || price.includes('₹1 cr') || price.includes('₹2 cr');
-      const high = price.includes('3 cr') || price.includes('4 cr') || price.includes('55 cr') || price.includes('60 cr') || price.includes('90 cr') || price.includes('100 cr');
-      if (filterPrice === 'Under ₹1 Cr' && !under) return false;
-      if (filterPrice === '₹1 Cr – ₹3 Cr' && !mid) return false;
-      if (filterPrice === 'Above ₹3 Cr' && !high) return false;
-    }
-    return true;
-  }), [filterType, filterLocation, filterPrice]);
+  useEffect(() => {
+    let active = true;
+
+    fetch('/api/inventory-public')
+      .then((response) => {
+        if (!response.ok) throw new Error('Inventory request failed');
+        return response.json();
+      })
+      .then((data: { properties?: Property[]; inventoryUnavailable?: boolean }) => {
+        if (!active) return;
+        setProperties(Array.isArray(data.properties) ? data.properties : []);
+        setInventoryUnavailable(Boolean(data.inventoryUnavailable));
+      })
+      .catch(() => {
+        if (!active) return;
+        setProperties([]);
+        setInventoryUnavailable(true);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const filteredProperties = useMemo(
+    () =>
+      properties.filter((property) => {
+        if (!matchesType(property.propertyType, filterType)) return false;
+        if (
+          filterLocation !== 'All Locations' &&
+          !property.location.toLowerCase().includes(filterLocation.toLowerCase())
+        ) {
+          return false;
+        }
+        return matchesPrice(property.price, filterPrice);
+      }),
+    [properties, filterType, filterLocation, filterPrice]
+  );
 
   return (
     <section id="properties" className="py-20 bg-[#F9F9F7] border-t border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-6">
           <div className="border-l-4 border-[#C2A36B] pl-8 py-2">
-            <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-4">Fresh property + commercial + healthcare research</div>
-            <h2 className="text-3xl md:text-4xl font-serif text-[#1A365D] font-light">Properties Worth Enquiring About</h2>
-            <p className="mt-3 max-w-2xl text-sm text-gray-600">We research active NCR projects, commercial land and healthcare opportunities and keep direct listings here. Market prices are indicative — Anjanay Heights will confirm exact property, price, approvals and availability before a site visit.</p>
+            <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-4">
+              Live verified inventory
+            </div>
+            <h2 className="text-3xl md:text-4xl font-serif text-[#1A365D] font-light">
+              Properties Worth Enquiring About
+            </h2>
+            <p className="mt-3 max-w-2xl text-sm text-gray-600">
+              Live inventory is pulled from the Anjanay Heights property database. Only active,
+              public and verified listings are shown.
+            </p>
           </div>
+
           <div className="flex flex-col sm:flex-row gap-3 bg-white p-4 border border-gray-200 shadow-sm">
-            <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="px-4 py-2 bg-white border border-gray-200 text-sm text-[#1A365D]"><option>All Types</option><option>Residential</option><option>Villa</option><option>Flat</option><option>Hospital</option><option>Commercial Land</option><option>Residential Plot</option><option>Commercial</option></select>
-            <select value={filterLocation} onChange={(e) => setFilterLocation(e.target.value)} className="px-4 py-2 bg-white border border-gray-200 text-sm text-[#1A365D]"><option>All Locations</option><option>Noida Extension</option><option>Greater Noida West</option><option>Greater Noida</option><option>Gurgaon</option><option>Faridabad</option><option>Yamuna Expressway</option><option>Haridwar</option></select>
-            <select value={filterPrice} onChange={(e) => setFilterPrice(e.target.value)} className="px-4 py-2 bg-white border border-gray-200 text-sm text-[#1A365D]"><option>All Prices</option><option>Under ₹1 Cr</option><option>₹1 Cr – ₹3 Cr</option><option>Above ₹3 Cr</option></select>
+            <select
+              value={filterType}
+              onChange={(event) => setFilterType(event.target.value)}
+              className="px-4 py-2 bg-white border border-gray-200 text-sm text-[#1A365D]"
+            >
+              <option>All Types</option>
+              <option>Residential</option>
+              <option>Commercial</option>
+              <option>Plot</option>
+              <option>Hospital</option>
+            </select>
+
+            <select
+              value={filterLocation}
+              onChange={(event) => setFilterLocation(event.target.value)}
+              className="px-4 py-2 bg-white border border-gray-200 text-sm text-[#1A365D]"
+            >
+              <option>All Locations</option>
+              <option>Noida</option>
+              <option>Greater Noida</option>
+              <option>Noida Extension</option>
+              <option>Yamuna Expressway</option>
+              <option>YEIDA</option>
+              <option>Faridabad</option>
+              <option>Gurgaon</option>
+              <option>Ghaziabad</option>
+            </select>
+
+            <select
+              value={filterPrice}
+              onChange={(event) => setFilterPrice(event.target.value)}
+              className="px-4 py-2 bg-white border border-gray-200 text-sm text-[#1A365D]"
+            >
+              <option>All Prices</option>
+              <option>Under ₹1 Cr</option>
+              <option>₹1 Cr – ₹3 Cr</option>
+              <option>Above ₹3 Cr</option>
+            </select>
           </div>
         </div>
 
-        <div className="mb-6 flex items-center justify-between text-xs text-gray-500"><span>{filteredProperties.length} options in the current shortlist</span><span>Research checked: {RESEARCH_DATE}</span></div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <AnimatePresence>
-            {filteredProperties.map((p, i) => (
-              <motion.div layout key={p.id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: 0.4, delay: i * 0.03 }} className="group relative overflow-hidden border border-gray-200 bg-white shadow-sm">
-                <div className="aspect-[3/4] relative overflow-hidden">
-                  <img src={p.image} alt={`${p.name} representative property image`} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                  <div className="absolute top-4 left-4 bg-white/95 px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest text-[#1A365D]">{p.sourceLabel}</div>
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-5 pt-16"><div className="text-[10px] font-bold uppercase tracking-widest text-[#C2A36B] mb-1">{p.type}</div><h3 className="text-xl font-serif text-white">{p.name}</h3><p className="text-sm text-white/85 mt-1">{p.location}</p></div>
-                  <div className="absolute inset-0 bg-[#1A365D]/95 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-6">
-                    <div><div className="text-[10px] font-bold uppercase tracking-widest text-[#C2A36B] mb-2">{p.type}</div><h3 className="text-xl font-serif text-white mb-1">{p.name}</h3><p className="text-sm text-white/80">{p.location}</p><p className="text-xs text-white/70 mt-4">{p.note}</p></div>
-                    <div><div className="space-y-3 border-t border-white/20 pt-4 mb-5"><div className="flex justify-between text-xs text-white/90"><span>Configuration</span><span className="font-medium text-right ml-4">{p.config}</span></div><div className="flex justify-between text-xs text-white/90"><span>Area</span><span className="font-medium">{p.area}</span></div><div className="flex justify-between text-xs text-white/90"><span>Indicative price</span><span className="font-bold text-[#C2A36B] text-right ml-4">{p.price}</span></div></div><a href={whatsappUrl(p)} target="_blank" rel="noreferrer" className="block w-full text-center bg-[#C2A36B] text-[#1A365D] py-3 text-[10px] font-bold uppercase tracking-widest hover:opacity-90">Check Availability on WhatsApp</a>{p.source && <a href={p.source} target="_blank" rel="noreferrer" className="block w-full text-center mt-2 border border-white/30 text-white py-2 text-[9px] font-bold uppercase tracking-widest hover:bg-white/10">View public source</a>}</div>
-                  </div>
-                </div>
-                <div className="p-5"><div className="text-[10px] font-bold uppercase tracking-widest text-[#C2A36B] mb-1">{p.type}</div><h3 className="text-lg font-serif text-[#1A365D] mb-1 truncate">{p.name}</h3><div className="flex justify-between items-center gap-3 mt-2"><span className="text-xs text-gray-500 truncate">{p.location}</span><span className="text-xs font-bold text-[#1A365D] text-right">{p.price}</span></div><a href={whatsappUrl(p)} target="_blank" rel="noreferrer" className="mt-4 block w-full text-center border border-[#1A365D] text-[#1A365D] py-2.5 text-[9px] font-bold uppercase tracking-widest hover:bg-[#1A365D] hover:text-white">Ask Sales Team</a></div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+        <div className="mb-6 flex items-center justify-between text-xs text-gray-500">
+          <span>
+            {loading ? 'Loading live inventory…' : filteredProperties.length + ' verified options'}
+          </span>
+          <span>
+            {inventoryUnavailable
+              ? 'Live inventory temporarily unavailable'
+              : 'Prices and availability are subject to final verification'}
+          </span>
         </div>
+
+        {loading ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((item) => (
+              <div
+                key={item}
+                className="h-[420px] bg-white border border-gray-200 animate-pulse"
+              />
+            ))}
+          </div>
+        ) : filteredProperties.length === 0 ? (
+          <div className="bg-white border border-gray-200 p-10 text-center">
+            <h3 className="text-2xl font-serif text-[#1A365D]">No exact match found</h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Try another filter or ask Anjanay Heights for similar verified properties.
+            </p>
+            <a
+              href={
+                'https://wa.me/' +
+                WHATSAPP +
+                '?text=' +
+                encodeURIComponent(
+                  'Hello Anjanay Heights, please suggest similar verified properties for my requirement.'
+                )
+              }
+              target="_blank"
+              rel="noreferrer"
+              className="inline-block mt-5 bg-[#C2A36B] text-[#1A365D] px-6 py-3 text-[10px] font-bold uppercase tracking-widest"
+            >
+              Ask for Similar Properties
+            </a>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <AnimatePresence>
+              {filteredProperties.map((property, index) => {
+                const image =
+                  property.photos && property.photos.length > 0 ? property.photos[0] : '';
+
+                return (
+                  <motion.div
+                    layout
+                    key={property.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.35, delay: index * 0.03 }}
+                    className="group relative overflow-hidden border border-gray-200 bg-white shadow-sm"
+                  >
+                    <div className="aspect-[3/4] relative overflow-hidden bg-[#EEF1F4]">
+                      {image ? (
+                        <img
+                          src={image}
+                          alt={property.title + ' in ' + property.location}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center p-8 text-center">
+                          <div>
+                            <div className="text-[10px] font-bold uppercase tracking-widest text-[#C2A36B] mb-3">
+                              Verified Inventory
+                            </div>
+                            <div className="text-xl font-serif text-[#1A365D]">
+                              {property.title}
+                            </div>
+                            <div className="text-sm text-gray-500 mt-2">
+                              {property.location}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="absolute top-4 left-4 flex gap-2">
+                        <span className="bg-white/95 px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest text-[#1A365D]">
+                          Verified
+                        </span>
+                        {property.isHot ? (
+                          <span className="bg-[#C2A36B] px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest text-[#1A365D]">
+                            Hot
+                          </span>
+                        ) : null}
+                      </div>
+
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-5 pt-16">
+                        <div className="text-[10px] font-bold uppercase tracking-widest text-[#C2A36B] mb-1">
+                          {property.propertyType}
+                        </div>
+                        <h3 className="text-xl font-serif text-white">{property.title}</h3>
+                        <p className="text-sm text-white/85 mt-1">{property.location}</p>
+                      </div>
+
+                      <div className="absolute inset-0 bg-[#1A365D]/95 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-6">
+                        <div>
+                          <div className="text-[10px] font-bold uppercase tracking-widest text-[#C2A36B] mb-2">
+                            Verified Inventory
+                          </div>
+                          <h3 className="text-xl font-serif text-white mb-1">{property.title}</h3>
+                          <p className="text-sm text-white/80">{property.location}</p>
+                          <p className="text-xs text-white/70 mt-4">
+                            {property.description || 'Current project details available from sales.'}
+                          </p>
+                        </div>
+
+                        <div>
+                          <div className="space-y-3 border-t border-white/20 pt-4 mb-5">
+                            <div className="flex justify-between text-xs text-white/90">
+                              <span>Configuration</span>
+                              <span className="font-medium text-right ml-4">
+                                {property.bedrooms || '—'}
+                              </span>
+                            </div>
+                            <div className="flex justify-between text-xs text-white/90">
+                              <span>Area</span>
+                              <span className="font-medium">{property.area || '—'}</span>
+                            </div>
+                            <div className="flex justify-between text-xs text-white/90">
+                              <span>Price</span>
+                              <span className="font-bold text-[#C2A36B] text-right ml-4">
+                                {property.price || 'Contact Sales'}
+                              </span>
+                            </div>
+                            <div className="text-[10px] text-white/60">
+                              {verifiedDate(property.lastVerified)}
+                            </div>
+                          </div>
+
+                          <a
+                            href={whatsappUrl(property)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="block w-full text-center bg-[#C2A36B] text-[#1A365D] py-3 text-[10px] font-bold uppercase tracking-widest hover:opacity-90"
+                          >
+                            Check Availability on WhatsApp
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-5">
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-[#C2A36B] mb-1">
+                        {property.propertyType}
+                      </div>
+                      <h3 className="text-lg font-serif text-[#1A365D] mb-1 truncate">
+                        {property.title}
+                      </h3>
+                      <div className="flex justify-between items-center gap-3 mt-2">
+                        <span className="text-xs text-gray-500 truncate">{property.location}</span>
+                        <span className="text-xs font-bold text-[#1A365D] text-right">
+                          {property.price || 'Contact Sales'}
+                        </span>
+                      </div>
+                      <a
+                        href={whatsappUrl(property)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-4 block w-full text-center border border-[#1A365D] text-[#1A365D] py-2.5 text-[9px] font-bold uppercase tracking-widest hover:bg-[#1A365D] hover:text-white"
+                      >
+                        Ask Sales Team
+                      </a>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        )}
       </div>
     </section>
   );
