@@ -61,7 +61,9 @@ async function isFetchableImage(value: string): Promise<boolean> {
   return false;
 }
 const officialSourcePages: Record<string, string> = {
-  'NorthWind Sanctuary': 'https://www.northwindestates.com/residential/northwind-sanctuary',
+  'NorthWind Sanctuary': 'https://sanctuary.nwestates.in/',
+  'Crown Residences at Godrej Golf Links': 'https://www.godrejproperties.com/noida/residential/crown-residences-at-godrej-golf-links',
+  'Godrej Avenue 9': 'https://www.godrejproperties.com/noida/commercial/godrej-avenue-9',
 };
 async function resolveImageFromSource(sourceUrl: string): Promise<string> {
   if (!sourceUrl || !/^https?:\\/\\//i.test(sourceUrl)) return '';
@@ -75,8 +77,16 @@ async function resolveImageFromSource(sourceUrl: string): Promise<string> {
     for (const m of html.matchAll(metaRe)) candidates.push(m[1]);
     const reverseMetaRe = /<meta[^>]+content=[\"']([^\"']+)[\"'][^>]+(?:property|name)=[\"'](?:og:image|twitter:image|twitter:image:src)[\"'][^>]*>/gi;
     for (const m of html.matchAll(reverseMetaRe)) candidates.push(m[1]);
-    const imgRe = /<img[^>]+(?:src|data-src|data-lazy-src)=[\"']([^\"']+)[\"'][^>]*>/gi;
+    const imgRe = /<img[^>]+(?:src|data-src|data-lazy-src|data-original)=[\"']([^\"']+)[\"'][^>]*>/gi;
     for (const m of html.matchAll(imgRe)) candidates.push(m[1]);
+    const srcsetRe = /(?:srcset|data-srcset)=[\"']([^\"']+)[\"']/gi;
+    for (const m of html.matchAll(srcsetRe)) {
+      for (const part of String(m[1]).split(',')) candidates.push(part.trim().split(/\\s+/)[0]);
+    }
+    const jsonImageRe = /[\"'](?:image|imageUrl|image_url|contentUrl)[\"']\s*:\s*[\"']([^\"']+)[\"']/gi;
+    for (const m of html.matchAll(jsonImageRe)) candidates.push(m[1]);
+    const cssUrlRe = /url\\(\\s*[\"']?([^\"')]+)[\"']?\\s*\\)/gi;
+    for (const m of html.matchAll(cssUrlRe)) candidates.push(m[1]);
     for (const raw of candidates) {
       const u = absoluteUrl(raw, sourceUrl);
       if (isImageUrl(u) && await isFetchableImage(u)) return u;
