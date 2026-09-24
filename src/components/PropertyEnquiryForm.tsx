@@ -4,7 +4,10 @@ type Result = { priority?: string; score?: number; followUp?: string; duplicate?
 type Property = { id?: string; title?: string; location?: string; propertyType?: string; price?: string|number; area?: string|number; bedrooms?: string|number; photos?: string[]; videoUrl?: string };
 
 const PROPERTY_OPTIONS = [
-  'NCR Monarch','Godrej Majesty','VVIP Addresses Greater Noida West','YEIDA RPS 02 Residential Plot','ACE YXP Commercial','Express Astra','Gaurs 7th Avenue','Gaurs 14th Avenue','100 Beds Hospital – Faridabad','110 Bigha Commercial Land – Haridwar','710 sq ft Flat – Sector 1, Aminabad','Other / Not sure',
+  'Crown Residences at Godrej Golf Links',
+  'Godrej Avenue 9',
+  'NorthWind Sanctuary',
+  'Other / Not sure',
 ];
 
 function trackingValue(key: string, fallback = '') { if (typeof window === 'undefined') return fallback; return new URLSearchParams(window.location.search).get(key) || fallback; }
