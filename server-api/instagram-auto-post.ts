@@ -75,11 +75,12 @@ export default async function handler(req: any, res: any) {
   if (!token || !accountId) return json(res, 503, { ok: false, error: 'Instagram publishing is not configured.' });
 
   try {
-    const endpoint = 'https://xctxqausjucirnxmmjrp.supabase.co/rest/v1/properties?select=id,name,location,property_type,price,area,configuration,photos_url,verification_status,is_public,status,hot_score,updated_at&status=eq.active&verification_status=eq.verified&is_public=eq.true&order=hot_score.desc,updated_at.desc&limit=25';
+    const endpoint = 'https://anjanayheights-9m6i.vercel.app/api/inventory-public';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjdHhxYXVzanVjaXJueG1tanJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMjA4ODAsImV4cCI6MjEwNDc5Njg4MH0.L-tVG1EYLlnMFuiE9f2oIao-0lMpyh4tM50tYrHes7c';
-    const sr = await fetch(endpoint, { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } });
+    const sr = await fetch(endpoint, { headers: { 'Cache-Control': 'no-cache' } });
     if (!sr.ok) throw new Error(`Inventory unavailable (${sr.status})`);
-    const rows: any[] = await sr.json();
+    const inventory = await sr.json();
+    const rows: any[] = Array.isArray(inventory?.properties) ? inventory.properties : [];
     const published = await loadPublished();
     const candidates = rows.map(p => ({
       id: String(p.id),
