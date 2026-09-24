@@ -103,12 +103,11 @@ export default async function handler(req: any, res: any) {
   if (!token) return json(res, 503, { ok: false, error: 'Facebook publishing is not configured.' });
 
   try {
-    const endpoint = 'https://xctxqausjucirnxmmjrp.supabase.co/rest/v1/properties?select=id,name,location,property_type,price,area,configuration,photos_url,verification_status,is_public,status,hot_score,updated_at&status=eq.active&verification_status=eq.verified&is_public=eq.true&order=hot_score.desc,updated_at.desc&limit=25';
-    const supabaseKey = process.env.SUPABASE_ANON_KEY || '';
-    if (!supabaseKey) throw new Error('Supabase inventory is not configured.');
-    const sr = await fetch(endpoint, { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } });
+    const inventoryUrl = 'https://anjanayheights-9m6i.vercel.app/api/inventory-public';
+    const sr = await fetch(inventoryUrl, { headers: { 'Cache-Control': 'no-cache' } });
     if (!sr.ok) throw new Error(`Inventory unavailable (${sr.status})`);
-    const rows: any[] = await sr.json();
+    const inventory = await sr.json();
+    const rows: any[] = Array.isArray(inventory?.properties) ? inventory.properties : [];
     const published = await loadPublished();
     const baseCandidates = rows.map(p => ({
       id: String(p.id),
