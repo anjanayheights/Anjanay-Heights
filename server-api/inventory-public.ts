@@ -14,7 +14,7 @@ type Property = {
   lastVerified: string;
   verificationStatus: string;
   photos?: string[];
-  videoUrl?: string;
+  videoUrl?: string;\n  sourceUrl?: string;
   isHot?: boolean;
 };
 
@@ -53,7 +53,7 @@ async function readSupabase(): Promise<Property[]> {
     lastVerified: String(p?.updated_at || p?.created_at || ''),
     verificationStatus: 'Verified',
     photos: typeof p?.photos_url === 'string' && /\.(jpe?g|png|webp|avif)(\?.*)?$/i.test(p.photos_url.trim()) ? [p.photos_url.trim()] : Array.isArray(p?.photos_url) ? p.photos_url.filter((u: unknown) => typeof u === 'string' && /\.(jpe?g|png|webp|avif)(\?.*)?$/i.test(u.trim())) : [],
-    videoUrl: String(p?.video_url || ''),
+    videoUrl: String(p?.video_url || ''),\n    sourceUrl: String(p?.source_url || ''),
     isHot: Number(p?.hot_score || 0) >= 70,
   })).filter((p) => p.id);
 }
@@ -122,7 +122,7 @@ export default async function handler(req: any, res: any) {
         status: p.status,
         description: p.description,
         photos: p.photos || [],
-        videoUrl: p.videoUrl || '',
+        videoUrl: p.videoUrl || '',\n        sourceUrl: p.sourceUrl || '',
         createdAt: p.createdAt,
         lastVerified: p.lastVerified,
         verificationStatus: p.verificationStatus,
