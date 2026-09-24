@@ -41,6 +41,33 @@ async function savePublished(value: Record<string, any>) {
     contentType: 'application/json', ...a
   }));
 }
+function absoluteUrl(value: string, base: string) {
+  try { return new URL(value, base).toString(); } catch { return ''; }
+}
+function isImageUrl(value: string) {
+  return /^https?:\\/\\//i.test(value) && /\\.(jpe?g|png|webp|avif)(?:[?#].*)?$/i.test(value);
+}
+async function resolveImageFromSource(sourceUrl: string): Promise<string> {
+  if (!sourceUrl || !/^https?:\\/\\//i.test(sourceUrl)) return '';
+  if (isImageUrl(sourceUrl)) return sourceUrl;
+  try {
+    const r = await fetch(sourceUrl, { headers: { 'User-Agent': 'Mozilla/5.0 Anjanay-Heights verified property publisher' } });
+    if (!r.ok) return '';
+    const html = await r.text();
+    const candidates: string[] = [];
+    const metaRe = /<meta[^>]+(?:property|name)=[\"'](?:og:image|twitter:image|twitter:image:src)[\"'][^>]+content=[\"']([^\"']+)[\"'][^>]*>/gi;
+    for (const m of html.matchAll(metaRe)) candidates.push(m[1]);
+    const reverseMetaRe = /<meta[^>]+content=[\"']([^\"']+)[\"'][^>]+(?:property|name)=[\"'](?:og:image|twitter:image|twitter:image:src)[\"'][^>]*>/gi;
+    for (const m of html.matchAll(reverseMetaRe)) candidates.push(m[1]);
+    const imgRe = /<img[^>]+(?:src|data-src|data-lazy-src)=[\"']([^\"']+)[\"'][^>]*>/gi;
+    for (const m of html.matchAll(imgRe)) candidates.push(m[1]);
+    for (const raw of candidates) {
+      const u = absoluteUrl(raw, sourceUrl);
+      if (isImageUrl(u)) return u;
+    }
+  } catch {}
+  return '';
+}
 function caption(p: any) {
   return [
     `🔥 ${p.title}`,
@@ -77,12 +104,13 @@ export default async function handler(req: any, res: any) {
 
   try {
     const endpoint = 'https://xctxqausjucirnxmmjrp.supabase.co/rest/v1/properties?select=id,name,location,property_type,price,area,configuration,photos_url,verification_status,is_public,status,hot_score,updated_at&status=eq.active&verification_status=eq.verified&is_public=eq.true&order=hot_score.desc,updated_at.desc&limit=25';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjdHhxYXVzanVjaXJueG1tanJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMjA4ODAsImV4cCI6MjEwNDc5Njg4MH0.L-tVG1EYLlnMFuiE9f2oIao-0lMpyh4tM50tYrHes7c';
+    const supabaseKey = process.env.SUPABASE_ANON_KEY || '';
+    if (!supabaseKey) throw new Error('Supabase inventory is not configured.');
     const sr = await fetch(endpoint, { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } });
     if (!sr.ok) throw new Error(`Inventory unavailable (${sr.status})`);
     const rows: any[] = await sr.json();
     const published = await loadPublished();
-    const candidates = rows.map(p => ({
+    const baseCandidates = rows.map(p => ({
       id: String(p.id),
       title: String(p.name || 'Property'),
       location: String(p.location || ''),
@@ -90,10 +118,18 @@ export default async function handler(req: any, res: any) {
       price: String(p.price || ''),
       area: String(p.area || ''),
       bedrooms: String(p.configuration || ''),
-      photo: typeof p.photos_url === 'string' && /\\.(jpe?g|png|webp|avif)(\\?.*)?$/i.test(p.photos_url.trim()) ? p.photos_url.trim() : '',
+      photo: '',
       url: `https://anjanayheights-9m6i.vercel.app/?property=${encodeURIComponent(String(p.id))}`,
-      hotScore: Number(p.hot_score || 0)
-    })).filter(p => p.id && p.photo && !published[p.id]);
+      hotScore: Number(p.hot_score || 0),
+      sourcePage: String(p.photos_url || p.source_url || '')
+    })).filter(p => p.id && !published[p.id]);
+
+    const candidates: any[] = [];
+    for (const p of baseCandidates) {
+      p.photo = await resolveImageFromSource(p.sourcePage);
+      if (p.photo) candidates.push(p);
+      if (candidates.length >= 5) break;
+    }
 
     if (!candidates.length) return json(res, 200, {
       ok: true, posted: false,
