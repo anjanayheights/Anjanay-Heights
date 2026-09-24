@@ -83,12 +83,12 @@ export default async function handler(req: any, res: any) {
     const published = await loadPublished();
     const candidates = rows.map(p => ({
       id: String(p.id),
-      title: String(p.name || 'Property'),
+      title: String(p.name || p.title || 'Property'),
       location: String(p.location || ''),
-      propertyType: String(p.property_type || ''),
+      propertyType: String(p.property_type || p.propertyType || ''),
       price: String(p.price || ''),
       area: String(p.area || ''),
-      bedrooms: String(p.configuration || ''),
+      bedrooms: String(p.configuration || p.bedrooms || ''),
       photo: typeof p.photos_url === 'string' && /\\.(jpe?g|png|webp|avif)(\\?.*)?$/i.test(p.photos_url.trim()) ? p.photos_url.trim() : '',
       hotScore: Number(p.hot_score || 0)
     })).filter(p => p.id && p.photo && !published[p.id]);
