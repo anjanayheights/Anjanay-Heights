@@ -1,6 +1,6 @@
 import { get, list, put } from '@vercel/blob';
 
-const GRAPH_VERSION = process.env.META_GRAPH_API_VERSION || 'v23.0';
+const GRAPH_VERSION = process.env.META_GRAPH_API_VERSION || 'v26.0';
 const GRAPH_BASE = `https://graph.facebook.com/${GRAPH_VERSION}`;
 const PREFIX = 'crm/social/facebook-published.json';
 
