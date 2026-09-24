@@ -45,14 +45,27 @@ function absoluteUrl(value: string, base: string) {
   try { return new URL(value, base).toString(); } catch { return ''; }
 }
 function isImageUrl(value: string) {
-  return /^https?:\\/\\//i.test(value) && /\\.(jpe?g|png|webp|avif)(?:[?#].*)?$/i.test(value);
+  try {
+    const u = new URL(value);
+    return /^https?:$/i.test(u.protocol) && /\\.(jpe?g|png|webp|avif)(?:[?#].*)?$/i.test(u.pathname);
+  } catch {
+    return false;
+  }
+}
+async function isFetchableImage(value: string): Promise<boolean> {
+  try {
+    const r = await fetch(value, { method: 'HEAD', redirect: 'follow', headers: { 'User-Agent': 'Mozilla/5.0 Anjanay-Heights verified property publisher' } });
+    const type = String(r.headers.get('content-type') || '').toLowerCase();
+    if (r.ok && type.startsWith('image/')) return true;
+  } catch {}
+  return false;
 }
 const officialSourcePages: Record<string, string> = {
   'NorthWind Sanctuary': 'https://www.northwindestates.com/residential/northwind-sanctuary',
 };
 async function resolveImageFromSource(sourceUrl: string): Promise<string> {
   if (!sourceUrl || !/^https?:\\/\\//i.test(sourceUrl)) return '';
-  if (isImageUrl(sourceUrl)) return sourceUrl;
+  if (isImageUrl(sourceUrl) && await isFetchableImage(sourceUrl)) return sourceUrl;
   try {
     const r = await fetch(sourceUrl, { headers: { 'User-Agent': 'Mozilla/5.0 Anjanay-Heights verified property publisher' } });
     if (!r.ok) return '';
@@ -66,7 +79,7 @@ async function resolveImageFromSource(sourceUrl: string): Promise<string> {
     for (const m of html.matchAll(imgRe)) candidates.push(m[1]);
     for (const raw of candidates) {
       const u = absoluteUrl(raw, sourceUrl);
-      if (isImageUrl(u)) return u;
+      if (isImageUrl(u) && await isFetchableImage(u)) return u;
     }
   } catch {}
   return '';
