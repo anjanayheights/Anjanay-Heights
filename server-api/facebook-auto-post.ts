@@ -86,6 +86,14 @@ function caption(p: any) {
     `🔗 ${p.url}`,
   ].filter(Boolean).join('\\n');
 }
+async function getPageAccessToken(systemUserToken: string, pageId: string) {
+  const r = await fetch(`${GRAPH_BASE}/me/accounts?fields=id,access_token&access_token=${encodeURIComponent(systemUserToken)}`);
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || data?.error) throw new Error(data?.error?.message || `Facebook Page token lookup failed ${r.status}`);
+  const page = Array.isArray(data?.data) ? data.data.find((item: any) => String(item?.id) === pageId) : null;
+  if (!page?.access_token) throw new Error('Facebook Page access token could not be resolved for the assigned Page.');
+  return String(page.access_token);
+}
 async function metaPost(path: string, body: Record<string,string>) {
   const r = await fetch(`${GRAPH_BASE}/${path}`, {
     method: 'POST',
@@ -140,11 +148,12 @@ export default async function handler(req: any, res: any) {
     });
 
     const p = candidates[0];
+    const pageAccessToken = await getPageAccessToken(token, pageId);
     const publishedPost = await metaPost(`${pageId}/photos`, {
       url: p.photo,
       caption: caption(p),
       published: 'true',
-      access_token: token
+      access_token: pageAccessToken
     });
 
     published[p.id] = {
