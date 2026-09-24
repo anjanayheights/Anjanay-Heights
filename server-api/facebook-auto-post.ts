@@ -47,6 +47,9 @@ function absoluteUrl(value: string, base: string) {
 function isImageUrl(value: string) {
   return /^https?:\\/\\//i.test(value) && /\\.(jpe?g|png|webp|avif)(?:[?#].*)?$/i.test(value);
 }
+const officialSourcePages: Record<string, string> = {
+  'NorthWind Sanctuary': 'https://www.northwindestates.com/residential/northwind-sanctuary',
+};
 async function resolveImageFromSource(sourceUrl: string): Promise<string> {
   if (!sourceUrl || !/^https?:\\/\\//i.test(sourceUrl)) return '';
   if (isImageUrl(sourceUrl)) return sourceUrl;
@@ -120,7 +123,7 @@ export default async function handler(req: any, res: any) {
       photo: '',
       url: `https://anjanayheights-9m6i.vercel.app/?property=${encodeURIComponent(String(p.id))}`,
       hotScore: Number(p.hot_score || 0),
-      sourcePage: String(p.photos_url || p.source_url || '')
+      sourcePage: String(p.photos_url || p.source_url || officialSourcePages[String(p.name || p.title || '')] || '')
     })).filter(p => p.id && !published[p.id]);
 
     const candidates: any[] = [];
