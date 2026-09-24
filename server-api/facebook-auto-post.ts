@@ -145,16 +145,16 @@ export default async function handler(req: any, res: any) {
     const published = await loadPublished();
     const baseCandidates = rows.map(p => ({
       id: String(p.id),
-      title: String(p.name || 'Property'),
+      title: String(p.name || p.title || 'Property'),
       location: String(p.location || ''),
-      propertyType: String(p.property_type || ''),
+      propertyType: String(p.property_type || p.propertyType || ''),
       price: String(p.price || ''),
       area: String(p.area || ''),
-      bedrooms: String(p.configuration || ''),
+      bedrooms: String(p.configuration || p.bedrooms || ''),
       photo: '',
       url: `https://anjanayheights-9m6i.vercel.app/?property=${encodeURIComponent(String(p.id))}`,
       hotScore: Number(p.hot_score || 0),
-      sourcePage: String(p.photos_url || p.source_url || officialSourcePages[String(p.name || p.title || '')] || '')
+      sourcePage: String(p.photos_url || p.photo || (Array.isArray(p.photos) ? p.photos[0] : '') || p.source_url || officialSourcePages[String(p.name || p.title || '')] || '')
     })).filter(p => p.id && !published[p.id]);
 
     const candidates: any[] = [];
