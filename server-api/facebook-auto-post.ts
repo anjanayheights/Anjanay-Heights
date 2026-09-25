@@ -32,7 +32,7 @@ async function supabaseRequest(path: string, init: RequestInit = {}) {
     ...init,
     headers: {
       apikey: SUPABASE_SERVICE_ROLE_KEY,
-      Authorization: 'Bearer ' + SUPABASE_SERVICE_ROLE_KEY,
+      ...(SUPABASE_SERVICE_ROLE_KEY.startsWith('eyJ') ? { Authorization: 'Bearer ' + SUPABASE_SERVICE_ROLE_KEY } : {}),
       'Content-Type': 'application/json',
       ...(init.headers || {}),
     },
