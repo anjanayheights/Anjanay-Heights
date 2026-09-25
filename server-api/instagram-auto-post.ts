@@ -97,7 +97,7 @@ export default async function handler(req: any, res: any) {
       price: String(p.price || ''),
       area: String(p.area || ''),
       bedrooms: String(p.configuration || p.bedrooms || ''),
-      photo: typeof p.photos_url === 'string' && /\\.(jpe?g|png|webp|avif)(\\?.*)?$/i.test(p.photos_url.trim()) ? p.photos_url.trim() : '',
+      photo: (() => { const raw = typeof p.photos_url === 'string' ? p.photos_url : (Array.isArray(p.photos) ? p.photos[0] : ''); const url = String(raw || '').trim(); return /\.(jpe?g|png|webp|avif)(\?.*)?$/i.test(url) ? url : ''; })(),
       hotScore: Number(p.hot_score || 0)
     })).filter(p => p.id && p.photo && !published[p.id]);
 
