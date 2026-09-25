@@ -71,7 +71,7 @@ export default function Locations() {
               <p className="text-sm text-white/70 leading-relaxed font-light">{loc.desc}</p>
               <div className="mt-5 text-[10px] font-semibold uppercase tracking-widest text-[#C2A36B]">{loc.keywords}</div>
               <a
-                href="#properties"
+                href={"/locations/"+(loc.name==="Central Noida"?"noida":loc.name.toLowerCase().replace(/ /g,"-"))}
                 className="inline-flex mt-6 text-[10px] font-bold uppercase tracking-widest text-white hover:text-[#C2A36B] transition-colors"
               >
                 View Properties →
