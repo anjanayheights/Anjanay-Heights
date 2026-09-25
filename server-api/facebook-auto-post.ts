@@ -13,9 +13,21 @@ function authorized(req: any) {
   return !secret || header(req, 'authorization') === `Bearer ${secret}`;
 }
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://xctxqausjucirnxmmjrp.supabase.co';
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || '';
+const SUPABASE_SERVICE_ROLE_KEY =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.SUPABASE_SERVICE_KEY ||
+  process.env.SUPABASE_SECRET_KEY ||
+  (() => {
+    try {
+      const keys = JSON.parse(process.env.SUPABASE_SECRET_KEYS || '{}');
+      return String(keys?.default || '');
+    } catch {
+      return '';
+    }
+  })();
+
 async function supabaseRequest(path: string, init: RequestInit = {}) {
-  if (!SUPABASE_SERVICE_ROLE_KEY) throw new Error('Supabase service key is not configured.');
+  if (!SUPABASE_SERVICE_ROLE_KEY) throw new Error('Supabase server key is not configured.');
   const r = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
     ...init,
     headers: {
@@ -65,7 +77,7 @@ const officialSourcePages: Record<string, string> = {
   'Godrej Avenue 9': 'https://www.godrejproperties.com/noida/commercial/godrej-avenue-9',
 };
 async function resolveImageFromSource(sourceUrl: string): Promise<string> {
-  if (!sourceUrl || !/^https?:\\/\\//i.test(sourceUrl)) return '';
+  if (!sourceUrl || !/^https?:\/\//i.test(sourceUrl)) return '';
   if (isImageUrl(sourceUrl) && await isFetchableImage(sourceUrl)) return sourceUrl;
   try {
     const r = await fetch(sourceUrl, { headers: { 'User-Agent': 'Mozilla/5.0 Anjanay-Heights verified property publisher' } });
@@ -80,11 +92,11 @@ async function resolveImageFromSource(sourceUrl: string): Promise<string> {
     for (const m of html.matchAll(imgRe)) candidates.push(m[1]);
     const srcsetRe = /(?:srcset|data-srcset)=[\"']([^\"']+)[\"']/gi;
     for (const m of html.matchAll(srcsetRe)) {
-      for (const part of String(m[1]).split(',')) candidates.push(part.trim().split(/\\s+/)[0]);
+      for (const part of String(m[1]).split(',')) candidates.push(part.trim().split(/\s+/)[0]);
     }
     const jsonImageRe = /[\"'](?:image|imageUrl|image_url|contentUrl)[\"']\s*:\s*[\"']([^\"']+)[\"']/gi;
     for (const m of html.matchAll(jsonImageRe)) candidates.push(m[1]);
-    const cssUrlRe = /url\\(\\s*[\"']?([^\"')]+)[\"']?\\s*\\)/gi;
+    const cssUrlRe = /url\(\s*[\"']?([^\"')]+)[\"']?\s*\)/gi;
     for (const m of html.matchAll(cssUrlRe)) candidates.push(m[1]);
     for (const raw of candidates) {
       const u = absoluteUrl(raw, sourceUrl);
