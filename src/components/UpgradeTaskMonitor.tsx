@@ -18,8 +18,9 @@ export default function UpgradeTaskMonitor() {
   const completed = TASKS.filter((t) => t.status === 'done').length;
 
   useEffect(() => {
-    localStorage.setItem('ah-upgrade-monitor-seen', String(Date.now()));
-    setSeen(Date.now());
+    const now = Date.now();
+    localStorage.setItem('ah-upgrade-monitor-seen', String(now));
+    setSeen(now);
   }, []);
 
   const hasNew = Date.now() - seen > 24 * 60 * 60 * 1000;
@@ -40,7 +41,11 @@ export default function UpgradeTaskMonitor() {
               <div key={task.id} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
                 <div className="flex items-center gap-2 text-sm font-semibold text-slate-800"><span>{task.status === 'done' ? '✅' : task.status === 'next' ? '🎯' : '⏳'}</span>{task.title}</div>
                 <p className="mt-1 text-xs leading-5 text-slate-500">{task.detail}</p>
-                {task.status !== 'done' && task.path && <button type="button" onClick={() => { window.location.href = task.path!; }} className="mt-2 text-xs font-bold text-[#1A365D] underline">Open task →</button>}
+                {task.status !== 'done' && task.path && (
+                  <a href={task.path} onClick={() => setOpen(false)} className="mt-2 inline-block cursor-pointer text-xs font-bold text-[#1A365D] underline">
+                    Open task →
+                  </a>
+                )}
               </div>
             ))}
           </div>
