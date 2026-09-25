@@ -1,9 +1,5 @@
-import { get, list, put } from '@vercel/blob';
-
 const GRAPH_VERSION = process.env.META_GRAPH_API_VERSION || 'v23.0';
 const GRAPH_BASE = `https://graph.instagram.com/${GRAPH_VERSION}`;
-const PREFIX = 'crm/social/instagram-published.json';
-
 function json(res: any, status: number, body: unknown) {
   return res.status(status).setHeader('Cache-Control', 'no-store').json(body);
 }
@@ -25,34 +21,46 @@ async function withBlobAuth<T>(op: (auth: Record<string,string>) => Promise<T>) 
   }
   throw last;
 }
-async function loadPublished(): Promise<Record<string, any>> {
-  try {
-    const page = await withBlobAuth(a => list({ prefix: PREFIX, ...a }));
-    const blob = page.blobs?.[0];
-    if (!blob) return {};
-    const r = await withBlobAuth(a => get(blob.url, { access: 'private', useCache: false, ...a }));
-    if (!r?.stream) return {};
-    return await new Response(r.stream).json();
-  } catch { return {}; }
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://xctxqausjucirnxmmjrp.supabase.co';
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SECRET_KEY || '';
+
+async function supabaseRequest(path: string, init: RequestInit = {}) {
+  if (!SUPABASE_KEY) throw new Error('Supabase server key is not configured.');
+  const r = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    ...init,
+    headers: {
+      apikey: SUPABASE_KEY,
+      ...(SUPABASE_KEY.startsWith('eyJ') ? { Authorization: 'Bearer ' + SUPABASE_KEY } : {}),
+      'Content-Type': 'application/json',
+      ...(init.headers || {}),
+    },
+  });
+  if (!r.ok) throw new Error('Supabase request failed (' + r.status + '): ' + (await r.text()).slice(0,300));
+  return r;
 }
-async function savePublished(value: Record<string, any>) {
-  await withBlobAuth(a => put(PREFIX, JSON.stringify(value), {
-    access: 'private', addRandomSuffix: false, allowOverwrite: true,
-    contentType: 'application/json', ...a
-  }));
+async function loadPublished(): Promise<Record<string, any>> {
+  const r = await supabaseRequest('social_posts?platform=eq.instagram&select=property_id,post_id,posted_at,title');
+  const rows = await r.json();
+  return Object.fromEntries((Array.isArray(rows) ? rows : []).map((x:any) => [String(x.property_id), x]));
+}
+async function savePublished(propertyId: string, postId: string, title: string) {
+  await supabaseRequest('social_posts?on_conflict=platform,property_id', {
+    method: 'POST',
+    headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify({ platform:'instagram', property_id:propertyId, post_id:postId, title, posted_at:new Date().toISOString() })
+  });
 }
 function caption(p: any) {
+  const hashtags = '#AnjanayHeights #Noida #GreaterNoida #DelhiNCR #RealEstate #PropertyForSale #PropertyInvestment #VerifiedProperty #NoidaRealEstate #GreaterNoidaRealEstate #CommercialProperty #ResidentialProperty #SiteVisit';
   return [
-    `🔥 ${p.title}`,
-    `📍 ${p.location}`,
+    `🔥 ${p.title}`, `📍 ${p.location}`,
     p.propertyType ? `🏠 ${p.propertyType}` : '',
     p.bedrooms ? `🛏️ ${p.bedrooms}` : '',
     p.area ? `📐 ${p.area}` : '',
-    p.price ? `💰 ${p.price}` : '',
-    '',
+    p.price ? `💰 ${p.price}` : '', '',
     'Verified Anjanay Heights inventory.',
     'WhatsApp / Call: +91 92897 71222',
-    'DM for availability & site visit.'
+    'DM for availability & site visit.', '', hashtags
   ].filter(Boolean).join('\\n');
 }
 async function metaPost(path: string, body: Record<string,string>) {
@@ -76,7 +84,6 @@ export default async function handler(req: any, res: any) {
 
   try {
     const endpoint = 'https://anjanayheights-9m6i.vercel.app/api/inventory-public';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjdHhxYXVzanVjaXJueG1tanJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMjA4ODAsImV4cCI6MjEwNDc5Njg4MH0.L-tVG1EYLlnMFuiE9f2oIao-0lMpyh4tM50tYrHes7c';
     const sr = await fetch(endpoint, { headers: { 'Cache-Control': 'no-cache' } });
     if (!sr.ok) throw new Error(`Inventory unavailable (${sr.status})`);
     const inventory = await sr.json();
@@ -113,7 +120,7 @@ export default async function handler(req: any, res: any) {
       postedAt: new Date().toISOString(),
       title: p.title
     };
-    await savePublished(published);
+    await savePublished(p.id, String(publishedMedia.id || created.id), p.title);
 
     return json(res, 200, {
       ok: true, posted: true, propertyId: p.id, title: p.title,
