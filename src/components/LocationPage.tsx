@@ -14,6 +14,9 @@ const AREA_CONFIG: Record<string,{name:string; intro:string; focus:string; path:
   "faridabad": {name:"Faridabad", intro:"Explore active, verified residential and commercial opportunities in Faridabad.", focus:"Faridabad property search using current verified inventory.", path:"faridabad"},
   "ghaziabad": {name:"Ghaziabad", intro:"Explore active, verified residential and commercial opportunities in Ghaziabad.", focus:"Ghaziabad property search using current verified inventory.", path:"ghaziabad"},
   "gurgaon": {name:"Gurgaon", intro:"Explore active, verified property opportunities in Gurgaon.", focus:"Gurgaon property search using current verified inventory.", path:"gurgaon"},
+  "greater-noida-west": {name:"Greater Noida West", intro:"Explore active, verified property opportunities in Greater Noida West.", focus:"Greater Noida West residential and commercial property search using current verified inventory.", path:"greater-noida-west"},
+  "jewar": {name:"Jewar", intro:"Explore active, verified property opportunities in Jewar and the surrounding airport corridor.", focus:"Jewar property search using current verified inventory.", path:"jewar"},
+  "delhi-ncr": {name:"Delhi NCR", intro:"Explore active, verified property opportunities across selected Delhi NCR locations.", focus:"Delhi NCR property search using current verified inventory.", path:"delhi-ncr"},
 };
 
 export default function LocationPage({slug}:{slug:string}) {
