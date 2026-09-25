@@ -32,14 +32,14 @@ export default function UpgradeTaskMonitor() {
 
   return (
     <>
-      <button type="button" onClick={() => setOpen((v) => !v)} className="fixed right-4 bottom-24 z-[60] rounded-full bg-[#1A365D] px-4 py-3 text-xs font-bold text-white shadow-lg border border-white/20">
+      <button type="button" onClick={() => setOpen((v) => !v)} className="fixed right-4 bottom-24 z-[2147483646] pointer-events-auto rounded-full bg-[#1A365D] px-4 py-3 text-xs font-bold text-white shadow-lg border border-white/20">
         🛠️ CRM Upgrades {hasNew ? '•' : ''}
       </button>
       {open && (
-        <aside className="fixed right-4 bottom-40 z-[9999] w-[min(360px,calc(100vw-2rem))] rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl pointer-events-auto">
+        <aside className="fixed right-4 bottom-40 z-[2147483647] w-[min(360px,calc(100vw-2rem))] rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl pointer-events-auto">
           <div className="flex items-start justify-between gap-3">
             <div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#C2A36B]">CRM Upgrade Monitor</p><h3 className="mt-1 text-lg font-bold text-[#1A365D]">{completed}/{TASKS.length} tracked</h3></div>
-            <button type="button" onClick={() => setOpen(false)} className="text-slate-400">✕</button>
+            <button type="button" onClick={() => setOpen(false)} className="relative z-[2147483647] pointer-events-auto cursor-pointer text-slate-400">✕</button>
           </div>
           <div className="mt-4 space-y-2">
             {TASKS.map((task) => (
