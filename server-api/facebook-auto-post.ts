@@ -196,21 +196,24 @@ export default async function handler(req: any, res: any) {
       candidatesChecked: rows.length
     });
 
-    const p = candidates[0];
+    candidates.sort((a, b) => b.hotScore - a.hotScore);
+    const selected = candidates.slice(0, 2);
     const pageAccessToken = await getPageAccessToken(token, pageId);
-    const publishedPost = await metaPost(`${pageId}/photos`, {
-      url: p.photo,
-      caption: caption(p),
-      published: 'true',
-      access_token: pageAccessToken
-    });
-
-    const finalPostId = String(publishedPost.post_id || publishedPost.id || '');
-    await savePublished(p.id, finalPostId, p.title);
+    const posted: any[] = [];
+    for (const p of selected) {
+      const publishedPost = await metaPost(`${pageId}/photos`, {
+        url: p.photo,
+        caption: caption(p),
+        published: 'true',
+        access_token: pageAccessToken
+      });
+      const postId = String(publishedPost.post_id || publishedPost.id || '');
+      await savePublished(p.id, postId, p.title);
+      posted.push({ propertyId: p.id, title: p.title, postId });
+    }
 
     return json(res, 200, {
-      ok: true, posted: true, propertyId: p.id, title: p.title,
-      postId: String(publishedPost.post_id || publishedPost.id || '')
+      ok: true, posted: true, count: posted.length, posts: posted
     });
   } catch (e: any) {
     console.error('facebook-auto-post error', e);
