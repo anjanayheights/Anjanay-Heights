@@ -64,13 +64,23 @@ function caption(p: any) {
   ].filter(Boolean).join('\\n');
 }
 async function metaPost(path: string, body: Record<string,string>) {
-  const r = await fetch(`${GRAPH_BASE}/${path}`, {
+  const url = `${GRAPH_BASE}/${path}`;
+  const r = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams(body)
   });
-  const data = await r.json().catch(() => ({}));
-  if (!r.ok || data?.error) throw new Error(data?.error?.message || `Instagram API error ${r.status}`);
+  const raw = await r.text();
+  let data: any = {};
+  try { data = raw ? JSON.parse(raw) : {}; } catch {}
+  if (!r.ok || data?.error) {
+    const e = data?.error;
+    const detail = e
+      ? `${e.message || "Instagram API error"}${e.type ? ` [${e.type}]` : ""}${e.code != null ? ` code=${e.code}` : ""}${e.error_subcode != null ? ` subcode=${e.error_subcode}` : ""}`
+      : `Instagram API error ${r.status}: ${raw.slice(0,500)}`;
+    throw new Error(`Meta ${path}: ${detail}`);
+  }
+  if (!data?.id) throw new Error(`Meta ${path}: response did not contain an id. HTTP ${r.status}; response=${raw.slice(0,500)}`);
   return data;
 }
 
