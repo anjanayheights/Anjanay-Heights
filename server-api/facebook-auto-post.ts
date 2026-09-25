@@ -47,7 +47,7 @@ function absoluteUrl(value: string, base: string) {
 function isImageUrl(value: string) {
   try {
     const u = new URL(value);
-    return /^https?:$/i.test(u.protocol) && /\\.(jpe?g|png|webp|avif)(?:[?#].*)?$/i.test(u.pathname);
+    return /^https?:$/i.test(u.protocol) && /\.(jpe?g|png|webp|avif)(?:[?#].*)?$/i.test(u.pathname);
   } catch {
     return false;
   }
