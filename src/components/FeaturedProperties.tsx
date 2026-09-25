@@ -351,7 +351,13 @@ export default function FeaturedProperties() {
                           {property.price || 'Contact Sales'}
                         </span>
                       </div>
-                      <div className="grid grid-cols-2 gap-2 mt-4">
+                      <div className="grid grid-cols-3 gap-2 mt-4">
+                        <a
+                          href={'/property/' + encodeURIComponent(property.id)}
+                          className="block w-full text-center border border-[#C2A36B] text-[#1A365D] py-2.5 text-[9px] font-bold uppercase tracking-widest hover:bg-[#C2A36B]"
+                        >
+                          Details
+                        </a>
                         <a
                           href={whatsappUrl(property)}
                           target="_blank"
