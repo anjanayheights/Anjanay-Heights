@@ -159,7 +159,7 @@ const loaders: Record<string, () => Promise<any>> = {
   'payment-schedule': () => import('../server-api/payment-schedule.js'),
   'post-visit-followup': () => import('../server-api/post-visit-followup.js'),
   'priority-match-queue': () => import('../server-api/priority-match-queue.js'),
-  'properties': () => import('../server-api/properties.js'),
+  'properties': () => import('../server-api/properties-supabase.js'),
   'property-history': () => import('../server-api/property-history.js'),
   'property-match': () => import('../server-api/property-match.js'),
   'push': () => import('../server-api/push.js'),
