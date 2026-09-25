@@ -113,6 +113,12 @@ async function resolveImageFromSource(sourceUrl: string): Promise<string> {
   return '';
 }
 function caption(p: any) {
+  const hashtags = [
+    '#AnjanayHeights','#Noida','#GreaterNoida','#DelhiNCR',
+    '#RealEstate','#PropertyForSale','#PropertyInvestment',
+    '#VerifiedProperty','#NoidaRealEstate','#GreaterNoidaRealEstate',
+    '#CommercialProperty','#ResidentialProperty','#SiteVisit'
+  ];
   return [
     `🔥 ${p.title}`,
     `📍 ${p.location}`,
@@ -125,6 +131,8 @@ function caption(p: any) {
     'WhatsApp / Call: +91 92897 71222',
     'DM for availability & site visit.',
     `🔗 ${p.url}`,
+    '',
+    hashtags.join(' ')
   ].filter(Boolean).join('\\n');
 }
 async function getPageAccessToken(systemUserToken: string, pageId: string) {
