@@ -124,6 +124,7 @@ export default async function handler(req: any, res: any) {
         status: p.status,
         description: p.description,
         photos: p.photos || [],
+        photos_url: p.photos?.[0] || '',
         videoUrl: p.videoUrl || '',
         sourceUrl: p.sourceUrl || '',\n        sourceUrl: p.sourceUrl || '',
         createdAt: p.createdAt,
