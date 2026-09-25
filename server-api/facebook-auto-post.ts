@@ -1,5 +1,3 @@
-import { get, list, put } from '@vercel/blob';
-
 const GRAPH_VERSION = process.env.META_GRAPH_API_VERSION || 'v26.0';
 const GRAPH_BASE = `https://graph.facebook.com/${GRAPH_VERSION}`;
 const PREFIX = 'crm/social/facebook-published.json';
@@ -14,32 +12,33 @@ function authorized(req: any) {
   const secret = process.env.CRON_SECRET || '';
   return !secret || header(req, 'authorization') === `Bearer ${secret}`;
 }
-const blobAuthCandidates = [
-  ...(process.env.VERCEL_OIDC_TOKEN && process.env.BLOB_STORE_ID ? [{ oidcToken: process.env.VERCEL_OIDC_TOKEN, storeId: process.env.BLOB_STORE_ID }] : []),
-  ...(process.env.BLOB_READ_WRITE_TOKEN ? [{ token: process.env.BLOB_READ_WRITE_TOKEN }] : []),
-];
-async function withBlobAuth<T>(op: (auth: Record<string,string>) => Promise<T>) {
-  let last: any = new Error('Blob credentials unavailable');
-  for (const auth of blobAuthCandidates) {
-    try { return await op(auth); } catch (e) { last = e; }
-  }
-  throw last;
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://xctxqausjucirnxmmjrp.supabase.co';
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || '';
+async function supabaseRequest(path: string, init: RequestInit = {}) {
+  if (!SUPABASE_SERVICE_ROLE_KEY) throw new Error('Supabase service key is not configured.');
+  const r = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    ...init,
+    headers: {
+      apikey: SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: 'Bearer ' + SUPABASE_SERVICE_ROLE_KEY,
+      'Content-Type': 'application/json',
+      ...(init.headers || {}),
+    },
+  });
+  if (!r.ok) throw new Error('Supabase request failed (' + r.status + ')');
+  return r;
 }
 async function loadPublished(): Promise<Record<string, any>> {
-  try {
-    const page = await withBlobAuth(a => list({ prefix: PREFIX, ...a }));
-    const blob = page.blobs?.[0];
-    if (!blob) return {};
-    const r = await withBlobAuth(a => get(blob.url, { access: 'private', useCache: false, ...a }));
-    if (!r?.stream) return {};
-    return await new Response(r.stream).json();
-  } catch { return {}; }
+  const r = await supabaseRequest('social_posts?platform=eq.facebook&select=property_id,post_id,posted_at,title');
+  const rows = await r.json();
+  return Object.fromEntries((Array.isArray(rows) ? rows : []).map((x: any) => [String(x.property_id), x]));
 }
-async function savePublished(value: Record<string, any>) {
-  await withBlobAuth(a => put(PREFIX, JSON.stringify(value), {
-    access: 'private', addRandomSuffix: false, allowOverwrite: true,
-    contentType: 'application/json', ...a
-  }));
+async function savePublished(propertyId: string, postId: string, title: string) {
+  await supabaseRequest('social_posts?on_conflict=platform,property_id', {
+    method: 'POST',
+    headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify({ platform: 'facebook', property_id: propertyId, post_id: postId, title, posted_at: new Date().toISOString() }),
+  });
 }
 function absoluteUrl(value: string, base: string) {
   try { return new URL(value, base).toString(); } catch { return ''; }
@@ -179,12 +178,8 @@ export default async function handler(req: any, res: any) {
       access_token: pageAccessToken
     });
 
-    published[p.id] = {
-      postId: String(publishedPost.post_id || publishedPost.id || ''),
-      postedAt: new Date().toISOString(),
-      title: p.title
-    };
-    await savePublished(published);
+    const finalPostId = String(publishedPost.post_id || publishedPost.id || '');
+    await savePublished(p.id, finalPostId, p.title);
 
     return json(res, 200, {
       ok: true, posted: true, propertyId: p.id, title: p.title,
