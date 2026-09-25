@@ -99,7 +99,7 @@ async function publicInventory(req:any,res:any){
       createdAt:String(p?.created_at||p?.updated_at||''),
       lastVerified:String(p?.updated_at||p?.created_at||''),
       verificationStatus:'Verified',
-      photos:typeof p?.photos_url==='string'&&/\\.(jpe?g|png|webp|avif)(\\?.*)?$/i.test(p.photos_url.trim())?[p.photos_url.trim()]:[],
+      photos:typeof p?.photos_url==='string'&&/\.(jpe?g|png|webp|avif)(\?.*)?$/i.test(p.photos_url.trim())?[p.photos_url.trim()]:[],
       videoUrl:String(p?.video_url||''),
       isHot:Number(p?.hot_score||0)>=70
     })).filter(p=>p.id);
