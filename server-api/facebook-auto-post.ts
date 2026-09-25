@@ -77,7 +77,7 @@ async function isFetchableImage(value: string): Promise<boolean> {
 const officialSourcePages: Record<string, string> = {
   'NorthWind Sanctuary': 'https://sanctuary.nwestates.in/',
   'Crown Residences at Godrej Golf Links': 'https://www.godrejproperties.com/noida/residential/crown-residences-at-godrej-golf-links',
-  'Godrej Avenue 9': 'https://www.godrejproperties.com/noida/commercial/godrej-avenue-9',
+  'Godrej Avenue 9': 'https://godrejavenue9.in/images/b2.jpg',
 };
 async function resolveImageFromSource(sourceUrl: string): Promise<string> {
   if (!sourceUrl || !/^https?:\/\//i.test(sourceUrl)) return '';
