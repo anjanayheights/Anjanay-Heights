@@ -133,25 +133,25 @@ export default async function handler(req: any, res: any) {
       candidatesChecked: rows.length
     });
 
-    const p = candidates[0];
-    const created = await metaPost(`${accountId}/media`, {
-      image_url: p.photo, caption: caption(p), access_token: token
-    });
-    await waitForContainer(String(created.id), token);
-    const publishedMedia = await metaPost(`${accountId}/media_publish`, {
-      creation_id: String(created.id), access_token: token
-    });
-
-    published[p.id] = {
-      mediaId: String(publishedMedia.id || created.id),
-      postedAt: new Date().toISOString(),
-      title: p.title
-    };
-    await savePublished(p.id, String(publishedMedia.id || created.id), p.title);
+    candidates.sort((a, b) => b.hotScore - a.hotScore);
+    const selected = candidates.slice(0, 2);
+    const posted: any[] = [];
+    for (const p of selected) {
+      const created = await metaPost(`${accountId}/media`, {
+        image_url: p.photo, caption: caption(p), access_token: token
+      });
+      await waitForContainer(String(created.id), token);
+      const publishedMedia = await metaPost(`${accountId}/media_publish`, {
+        creation_id: String(created.id), access_token: token
+      });
+      const mediaId = String(publishedMedia.id || created.id);
+      published[p.id] = { mediaId, postedAt: new Date().toISOString(), title: p.title };
+      await savePublished(p.id, mediaId, p.title);
+      posted.push({ propertyId: p.id, title: p.title, mediaId });
+    }
 
     return json(res, 200, {
-      ok: true, posted: true, propertyId: p.id, title: p.title,
-      mediaId: String(publishedMedia.id || created.id)
+      ok: true, posted: true, count: posted.length, posts: posted
     });
   } catch (e: any) {
     console.error('instagram-auto-post error', e);
