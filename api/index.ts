@@ -136,6 +136,7 @@ const loaders: Record<string, () => Promise<any>> = {
   'inventory-public': async () => ({default: publicInventory}),
   'instagram-auto-post': () => import('../server-api/instagram-auto-post.js'),
   'facebook-auto-post': () => import('../server-api/facebook-auto-post.js'),
+  'facebook-verify': () => import('../server-api/facebook-verify.js'),
   'auth': async () => ({default: crmAuth}),
   'lead-assignment': () => import('../server-api/lead-assignment.js'),
   'lead-conversion-plan': () => import('../server-api/lead-conversion-plan.js'),
