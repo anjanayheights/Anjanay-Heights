@@ -55,6 +55,13 @@ export default function PropertyComparison() {
                     <div className="text-[9px] font-bold uppercase tracking-widest text-[#C2A36B]">Verified {property.isHot ? '• Hot' : ''}</div>
                     <h3 className="mt-1 text-lg font-serif text-[#1A365D]">{property.title}</h3>
                     <p className="text-xs text-gray-500 mt-1">{property.location}</p>
+                    <a
+                      href={'/property/' + encodeURIComponent(property.id)}
+                      onClick={(event) => event.stopPropagation()}
+                      className="inline-block mt-3 text-[9px] font-bold uppercase tracking-widest text-[#C2A36B] hover:underline"
+                    >
+                      View Details →
+                    </a>
                   </div>
                   <span className={'w-5 h-5 border flex items-center justify-center text-xs ' + (checked ? 'bg-[#1A365D] text-white border-[#1A365D]' : 'border-gray-300')}>
                     {checked ? '✓' : ''}
@@ -75,7 +82,15 @@ export default function PropertyComparison() {
               <thead>
                 <tr className="bg-[#1A365D] text-white">
                   <th className="p-4 text-left font-medium">Compare</th>
-                  {compared.map((p) => <th key={p.id} className="p-4 text-left font-medium">{p.title}</th>)}
+                  {compared.map((p) => <th key={p.id} className="p-4 text-left font-medium">
+                    <div>{p.title}</div>
+                    <a
+                      href={'/property/' + encodeURIComponent(p.id)}
+                      className="inline-block mt-2 text-[9px] font-bold uppercase tracking-widest text-[#C2A36B] hover:underline"
+                    >
+                      View Details →
+                    </a>
+                  </th>)}
                 </tr>
               </thead>
               <tbody>
