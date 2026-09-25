@@ -37,7 +37,10 @@ async function supabaseRequest(path: string, init: RequestInit = {}) {
       ...(init.headers || {}),
     },
   });
-  if (!r.ok) throw new Error('Supabase request failed (' + r.status + ')');
+  if (!r.ok) {
+    const detail = await r.text().catch(() => '');
+    throw new Error('Supabase request failed (' + r.status + '): ' + detail.slice(0, 300));
+  }
   return r;
 }
 async function loadPublished(): Promise<Record<string, any>> {
