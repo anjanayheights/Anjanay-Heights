@@ -52,8 +52,33 @@ export default function PropertyDetail({ id }: { id: string }) {
     'Hello Anjanay Heights, I am interested in this verified property: ' + property.title + ' | ' + property.location + ' | ' + (property.price || 'Price on request')
   );
 
+  const pageUrl = window.location.origin + '/property/' + encodeURIComponent(property.id);
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: property.title + ' | Anjanay Heights',
+    url: pageUrl,
+    description: property.description || ('Verified property in ' + property.location + '. Contact Anjanay Heights for current availability and pricing.'),
+    isPartOf: { '@type': 'WebSite', name: 'Anjanay Heights', url: window.location.origin },
+    about: {
+      '@type': 'Place',
+      name: property.title,
+      address: { '@type': 'PostalAddress', addressLocality: property.location, addressCountry: 'IN' },
+      image: photo || undefined
+    }
+  };
+  const breadcrumbData = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: window.location.origin + '/' },
+      { '@type': 'ListItem', position: 2, name: 'Verified Properties', item: window.location.origin + '/#properties' },
+      { '@type': 'ListItem', position: 3, name: property.title, item: pageUrl }
+    ]
+  };
+
   return (
-    <div className="min-h-screen bg-[#F9F9F7] text-[#1A1A1A]">
+    <div className="min-h-screen bg-[#F9F9F7] text-[#1A1A1A]">\n      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />\n      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbData) }} />
       <section className="pt-28 pb-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <a href="/" className="text-[10px] font-bold uppercase tracking-widest text-[#1A365D]">← Back to verified properties</a>
