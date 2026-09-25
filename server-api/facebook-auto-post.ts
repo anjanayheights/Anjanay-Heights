@@ -143,6 +143,20 @@ async function getPageAccessToken(systemUserToken: string, pageId: string) {
   if (!page?.access_token) throw new Error('Facebook Page access token could not be resolved for the assigned Page.');
   return String(page.access_token);
 }
+async function verifyPagePost(pageId: string, pageAccessToken: string, postId: string) {
+  const fields = 'id,message,created_time,permalink_url,is_published';
+  const r = await fetch(GRAPH_BASE + '/' + pageId + '/feed?fields=' + fields + '&limit=25&access_token=' + encodeURIComponent(pageAccessToken));
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || data?.error) throw new Error(data?.error?.message || ('Facebook feed verification failed ' + r.status));
+  const found = Array.isArray(data?.data) ? data.data.find((x: any) => String(x?.id || '') === postId || String(x?.id || '').startsWith(postId + '_')) : null;
+  return found ? {
+    visibleOnPageFeed: true,
+    permalinkUrl: String(found.permalink_url || ''),
+    isPublished: found.is_published !== false,
+    createdTime: found.created_time || null
+  } : { visibleOnPageFeed: false, permalinkUrl: '', isPublished: null, createdTime: null };
+}
+
 async function metaPost(path: string, body: Record<string,string>) {
   const r = await fetch(`${GRAPH_BASE}/${path}`, {
     method: 'POST',
@@ -209,7 +223,13 @@ export default async function handler(req: any, res: any) {
       });
       const postId = String(publishedPost.post_id || publishedPost.id || '');
       await savePublished(p.id, postId, p.title);
-      posted.push({ propertyId: p.id, title: p.title, postId });
+      let pageVerification: any = { visibleOnPageFeed: null, permalinkUrl: '', isPublished: null, verificationError: '' };
+      try {
+        pageVerification = await verifyPagePost(pageId, pageAccessToken, postId);
+      } catch (verifyError: any) {
+        pageVerification.verificationError = String(verifyError?.message || verifyError);
+      }
+      posted.push({ propertyId: p.id, title: p.title, postId, ...pageVerification });
     }
 
     return json(res, 200, {
