@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/sitemap.xml",
+      "destination": "/api/index?route=sitemap"
+    },
+    {
       "source": "/api/leads",
       "destination": "/api/leads-direct"
     },
