@@ -68,9 +68,13 @@ function isImageUrl(value: string) {
 }
 async function isFetchableImage(value: string): Promise<boolean> {
   try {
-    const r = await fetch(value, { method: 'HEAD', redirect: 'follow', headers: { 'User-Agent': 'Mozilla/5.0 Anjanay-Heights verified property publisher' } });
-    const type = String(r.headers.get('content-type') || '').toLowerCase();
-    if (r.ok && type.startsWith('image/')) return true;
+    const headers = { 'User-Agent': 'Mozilla/5.0 Anjanay-Heights verified property publisher' };
+    const head = await fetch(value, { method: 'HEAD', redirect: 'follow', headers });
+    const headType = String(head.headers.get('content-type') || '').toLowerCase();
+    if (head.ok && headType.startsWith('image/')) return true;
+    const get = await fetch(value, { method: 'GET', redirect: 'follow', headers });
+    const getType = String(get.headers.get('content-type') || '').toLowerCase();
+    if (get.ok && getType.startsWith('image/')) return true;
   } catch {}
   return false;
 }
