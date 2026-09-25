@@ -17,13 +17,18 @@ type Property = {
   isHot?: boolean;
 };
 
-function whatsappUrl(property: Property) {
-  const message =
-    'Hello Anjanay Heights, I am interested in ' +
-    property.title +
-    ' in ' +
-    property.location +
-    '. Please confirm current availability, exact price and site visit options.';
+function whatsappUrl(property: Property, siteVisit = false) {
+  const message = siteVisit
+    ? 'Hello Anjanay Heights, I want to book a site visit for ' +
+      property.title +
+      ' in ' +
+      property.location +
+      '. Please share available visit slots.'
+    : 'Hello Anjanay Heights, I am interested in ' +
+      property.title +
+      ' in ' +
+      property.location +
+      '. Please confirm current availability, exact price and site visit options.';
   return 'https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent(message);
 }
 
@@ -67,6 +72,7 @@ export default function FeaturedProperties() {
   const [filterType, setFilterType] = useState('All Types');
   const [filterLocation, setFilterLocation] = useState('All Locations');
   const [filterPrice, setFilterPrice] = useState('All Prices');
+  const [hotOnly, setHotOnly] = useState(false);
   const [loading, setLoading] = useState(true);
   const [inventoryUnavailable, setInventoryUnavailable] = useState(false);
 
@@ -99,17 +105,20 @@ export default function FeaturedProperties() {
 
   const filteredProperties = useMemo(
     () =>
-      properties.filter((property) => {
-        if (!matchesType(property.propertyType, filterType)) return false;
-        if (
-          filterLocation !== 'All Locations' &&
-          !property.location.toLowerCase().includes(filterLocation.toLowerCase())
-        ) {
-          return false;
-        }
-        return matchesPrice(property.price, filterPrice);
-      }),
-    [properties, filterType, filterLocation, filterPrice]
+      properties
+        .filter((property) => {
+          if (hotOnly && !property.isHot) return false;
+          if (!matchesType(property.propertyType, filterType)) return false;
+          if (
+            filterLocation !== 'All Locations' &&
+            !property.location.toLowerCase().includes(filterLocation.toLowerCase())
+          ) {
+            return false;
+          }
+          return matchesPrice(property.price, filterPrice);
+        })
+        .sort((a, b) => Number(Boolean(b.isHot)) - Number(Boolean(a.isHot))),
+    [properties, filterType, filterLocation, filterPrice, hotOnly]
   );
 
   return (
@@ -121,11 +130,10 @@ export default function FeaturedProperties() {
               Live verified inventory
             </div>
             <h2 className="text-3xl md:text-4xl font-serif text-[#1A365D] font-light">
-              Properties Worth Enquiring About
+              Hot & Verified Properties
             </h2>
             <p className="mt-3 max-w-2xl text-sm text-gray-600">
-              Live inventory is pulled from the Anjanay Heights property database. Only active,
-              public and verified listings are shown.
+              Current active inventory only. Hot properties are surfaced first based on Anjanay Heights demand signals.
             </p>
           </div>
 
@@ -168,6 +176,19 @@ export default function FeaturedProperties() {
               <option>₹1 Cr – ₹3 Cr</option>
               <option>Above ₹3 Cr</option>
             </select>
+
+            <button
+              type="button"
+              onClick={() => setHotOnly((value) => !value)}
+              className={
+                'px-4 py-2 text-sm font-semibold border ' +
+                (hotOnly
+                  ? 'bg-[#1A365D] text-white border-[#1A365D]'
+                  : 'bg-white text-[#1A365D] border-gray-200')
+              }
+            >
+              🔥 Hot only
+            </button>
           </div>
         </div>
 
@@ -185,10 +206,7 @@ export default function FeaturedProperties() {
         {loading ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((item) => (
-              <div
-                key={item}
-                className="h-[420px] bg-white border border-gray-200 animate-pulse"
-              />
+              <div key={item} className="h-[420px] bg-white border border-gray-200 animate-pulse" />
             ))}
           </div>
         ) : filteredProperties.length === 0 ? (
@@ -217,8 +235,7 @@ export default function FeaturedProperties() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             <AnimatePresence>
               {filteredProperties.map((property, index) => {
-                const image =
-                  property.photos && property.photos.length > 0 ? property.photos[0] : '';
+                const image = property.photos && property.photos.length > 0 ? property.photos[0] : '';
 
                 return (
                   <motion.div
@@ -245,12 +262,8 @@ export default function FeaturedProperties() {
                             <div className="text-[10px] font-bold uppercase tracking-widest text-[#C2A36B] mb-3">
                               Verified Inventory
                             </div>
-                            <div className="text-xl font-serif text-[#1A365D]">
-                              {property.title}
-                            </div>
-                            <div className="text-sm text-gray-500 mt-2">
-                              {property.location}
-                            </div>
+                            <div className="text-xl font-serif text-[#1A365D]">{property.title}</div>
+                            <div className="text-sm text-gray-500 mt-2">{property.location}</div>
                           </div>
                         </div>
                       )}
@@ -261,7 +274,7 @@ export default function FeaturedProperties() {
                         </span>
                         {property.isHot ? (
                           <span className="bg-[#C2A36B] px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest text-[#1A365D]">
-                            Hot
+                            🔥 Hot
                           </span>
                         ) : null}
                       </div>
@@ -290,9 +303,7 @@ export default function FeaturedProperties() {
                           <div className="space-y-3 border-t border-white/20 pt-4 mb-5">
                             <div className="flex justify-between text-xs text-white/90">
                               <span>Configuration</span>
-                              <span className="font-medium text-right ml-4">
-                                {property.bedrooms || '—'}
-                              </span>
+                              <span className="font-medium text-right ml-4">{property.bedrooms || '—'}</span>
                             </div>
                             <div className="flex justify-between text-xs text-white/90">
                               <span>Area</span>
@@ -304,19 +315,27 @@ export default function FeaturedProperties() {
                                 {property.price || 'Contact Sales'}
                               </span>
                             </div>
-                            <div className="text-[10px] text-white/60">
-                              {verifiedDate(property.lastVerified)}
-                            </div>
+                            <div className="text-[10px] text-white/60">{verifiedDate(property.lastVerified)}</div>
                           </div>
 
-                          <a
-                            href={whatsappUrl(property)}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="block w-full text-center bg-[#C2A36B] text-[#1A365D] py-3 text-[10px] font-bold uppercase tracking-widest hover:opacity-90"
-                          >
-                            Check Availability on WhatsApp
-                          </a>
+                          <div className="grid grid-cols-2 gap-2">
+                            <a
+                              href={whatsappUrl(property)}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="block w-full text-center bg-[#C2A36B] text-[#1A365D] py-3 text-[10px] font-bold uppercase tracking-widest hover:opacity-90"
+                            >
+                              WhatsApp
+                            </a>
+                            <a
+                              href={whatsappUrl(property, true)}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="block w-full text-center border border-white/60 text-white py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-[#1A365D]"
+                            >
+                              Site Visit
+                            </a>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -325,23 +344,31 @@ export default function FeaturedProperties() {
                       <div className="text-[10px] font-bold uppercase tracking-widest text-[#C2A36B] mb-1">
                         {property.propertyType}
                       </div>
-                      <h3 className="text-lg font-serif text-[#1A365D] mb-1 truncate">
-                        {property.title}
-                      </h3>
+                      <h3 className="text-lg font-serif text-[#1A365D] mb-1 truncate">{property.title}</h3>
                       <div className="flex justify-between items-center gap-3 mt-2">
                         <span className="text-xs text-gray-500 truncate">{property.location}</span>
                         <span className="text-xs font-bold text-[#1A365D] text-right">
                           {property.price || 'Contact Sales'}
                         </span>
                       </div>
-                      <a
-                        href={whatsappUrl(property)}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="mt-4 block w-full text-center border border-[#1A365D] text-[#1A365D] py-2.5 text-[9px] font-bold uppercase tracking-widest hover:bg-[#1A365D] hover:text-white"
-                      >
-                        Ask Sales Team
-                      </a>
+                      <div className="grid grid-cols-2 gap-2 mt-4">
+                        <a
+                          href={whatsappUrl(property)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="block w-full text-center border border-[#1A365D] text-[#1A365D] py-2.5 text-[9px] font-bold uppercase tracking-widest hover:bg-[#1A365D] hover:text-white"
+                        >
+                          WhatsApp
+                        </a>
+                        <a
+                          href={whatsappUrl(property, true)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="block w-full text-center bg-[#1A365D] text-white py-2.5 text-[9px] font-bold uppercase tracking-widest hover:opacity-90"
+                        >
+                          Site Visit
+                        </a>
+                      </div>
                     </div>
                   </motion.div>
                 );
@@ -349,6 +376,25 @@ export default function FeaturedProperties() {
             </AnimatePresence>
           </div>
         )}
+
+        <div className="mt-8 rounded-2xl border border-[#C2A36B]/40 bg-white p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-[#C2A36B]">Need something specific?</div>
+            <div className="text-sm text-gray-600 mt-1">Tell us your location, property type and budget. We will check the verified inventory.</div>
+          </div>
+          <a
+            href={'https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent('Hi Anjanay Heights, please help me find a verified property based on my location, type and budget.')}
+            target="_blank"
+            rel="noreferrer"
+            className="shrink-0 text-center bg-[#C2A36B] text-[#1A365D] px-6 py-3 text-[10px] font-bold uppercase tracking-widest"
+          >
+            Find My Property
+          </a>
+        </div>
+
+        <p className="text-xs text-gray-400 mt-5">
+          Only active, verified and public inventory is shown. Prices and availability remain subject to final confirmation.
+        </p>
       </div>
     </section>
   );
