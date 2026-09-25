@@ -63,7 +63,7 @@ function caption(p: any) {
     'DM for availability & site visit.', '', hashtags
   ].filter(Boolean).join('\\n');
 }
-async function metaPost(path: string, body: Record<string,string>) {
+async function waitForContainer(id: string, token: string) {\n  const deadline = Date.now() + 25000;\n  while (Date.now() < deadline) {\n    const r = await fetch(`${GRAPH_BASE}/${id}?fields=status_code,status&access_token=${encodeURIComponent(token)}`);\n    const raw = await r.text();\n    let data:any = {};\n    try { data = raw ? JSON.parse(raw) : {}; } catch {}\n    if (data?.error) throw new Error(`Meta container status: ${data.error.message || raw.slice(0,300)}`);\n    const status = String(data?.status_code || data?.status || "").toUpperCase();\n    if (status === "FINISHED") return;\n    if (status === "ERROR" || status === "EXPIRED") throw new Error(`Meta media container ${status}: ${raw.slice(0,500)}`);\n    await new Promise(r => setTimeout(r, 1500));\n  }\n  throw new Error("Meta media container did not finish processing within 25 seconds.");\n}\n\nasync function metaPost(path: string, body: Record<string,string>) {
   const url = `${GRAPH_BASE}/${path}`;
   const r = await fetch(url, {
     method: 'POST',
