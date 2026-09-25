@@ -3,6 +3,7 @@
 // module-loading dependency and cannot fail during consolidated cold start.
 
 import { get, list } from '@vercel/blob';
+import sitemap from '../server-api/sitemap.js';
 
 type PublicProperty = {
   id: string;
@@ -134,6 +135,7 @@ const loaders: Record<string, () => Promise<any>> = {
   'follow-up-push': () => import('../server-api/follow-up-push.js'),
   'followup-engine': () => import('../server-api/followup-engine.js'),
   'inventory-public': async () => ({default: publicInventory}),
+  'sitemap': async () => ({default: sitemap}),
   'instagram-auto-post': () => import('../server-api/instagram-auto-post.js'),
   'facebook-auto-post': () => import('../server-api/facebook-auto-post.js'),
   'facebook-verify': () => import('../server-api/facebook-verify.js'),
