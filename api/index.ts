@@ -136,7 +136,7 @@ const loaders: Record<string, () => Promise<any>> = {
   'followup-engine': () => import('../server-api/followup-engine.js'),
   'inventory-public': async () => ({default: publicInventory}),
   'sitemap': async () => ({default: sitemap}),
-  'seo-html': () => import('../server-api/seo-html.js'),
+  'seo-html': () => import('../server-api/seo-html-wrapper.js'),
   'instagram-auto-post': () => import('../server-api/instagram-auto-post.js'),
   'facebook-auto-post': () => import('../server-api/facebook-auto-post.js'),
   'facebook-verify': () => import('../server-api/facebook-verify.js'),
