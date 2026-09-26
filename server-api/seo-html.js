@@ -6,7 +6,7 @@ function esc(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 function clean(v){return String(v??'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();}
 function meta(html,attrs,value){const marker='<meta '+attrs;const tag=marker+' content="'+esc(value)+'">';const i=html.toLowerCase().indexOf(marker.toLowerCase());return i>=0?html.slice(0,i)+tag+html.slice(i+html.slice(i).indexOf('>')+1):html.replace('</head>',tag+'\n</head>');}
 function canonical(html,url){const i=html.toLowerCase().indexOf('<link rel="canonical"');const tag='<link rel="canonical" href="'+esc(url)+'">';return i>=0?html.slice(0,i)+tag+html.slice(i+html.slice(i).indexOf('>')+1):html.replace('</head>',tag+'\n</head>');}
-async function getJson(url){const r=await fetch(url,{headers:{apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+SUPABASE_ANON_KEY}});if(!r.ok)throw new Error('inventory '+r.status);return r.json();}
+async function getJson(url){const r=await fetch(url);if(!r.ok)throw new Error('inventory '+r.status);return r.json();}
 function template(){return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Anjanay Heights</title><meta name="description" content="Verified property opportunities from Anjanay Heights."></head><body><div id="root"></div></body></html>';}
 export default async function seoHtml(req,res){
   try{
@@ -14,8 +14,9 @@ export default async function seoHtml(req,res){
     let title='Anjanay Heights | Verified Property', description='Active, verified property opportunities from Anjanay Heights in Noida, Greater Noida and NCR.', canonicalUrl=BASE+'/', status=200;
     let schema={"@context":"https://schema.org","@type":"RealEstateAgent","name":"Anjanay Heights","url":BASE+'/'};
     if(kind==='property'&&id){
-      const rows=await getJson(SUPABASE_URL+'/rest/v1/properties?select=id,name,location,property_type,status,price,area,configuration,verification_status,verification_notes,photos_url,updated_at,hot_score&status=eq.active&verification_status=eq.verified&is_public=eq.true&id=eq.'+encodeURIComponent(id));
-      const p=Array.isArray(rows)?rows[0]:null;
+      const inventory=await getJson(BASE+'/api/index?route=inventory-public');
+      const rows=Array.isArray(inventory?.properties)?inventory.properties:[];
+      const p=rows.find(row=>String(row?.id||'')===id)||null;
       if(!p){status=404;title='Property Not Found | Anjanay Heights';description='The requested property is not currently available.';}
       else{
         const name=clean(p.name)||'Verified Property',loc=clean(p.location),price=clean(p.price),area=clean(p.area),type=clean(p.property_type);
@@ -31,6 +32,7 @@ export default async function seoHtml(req,res){
       schema={"@context":"https://schema.org","@type":"CollectionPage","name":title,"url":canonicalUrl,"description":description};
     }else status=404;
     let html=template();
+    html=html.replace('<div id="content"></div>','<div id="content">'+bodyContent+'</div>');
     html=html.replace('<title>Anjanay Heights</title>','<title>'+esc(title)+'</title>');
     html=html.replace('<meta name="description" content="Verified property opportunities from Anjanay Heights.">','<meta name="description" content="'+esc(description)+'">');
     html=meta(html,'property="og:title"',title);html=meta(html,'property="og:description"',description);html=meta(html,'property="og:url"',canonicalUrl);html=meta(html,'name="twitter:title"',title);html=meta(html,'name="twitter:description"',description);html=canonical(html,canonicalUrl);
