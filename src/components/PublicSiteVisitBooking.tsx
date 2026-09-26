@@ -23,7 +23,7 @@ export default function PublicSiteVisitBooking() {
   return (
     <>
       <button onClick={() => { setOpen(true); setSubmitted(false); }} className="fixed bottom-5 right-[230px] z-40 hidden md:block rounded-full bg-[#1A365D] px-5 py-3 text-sm font-bold text-white shadow-xl hover:scale-105 transition-transform">📅 Book Site Visit</button>
-      <button onClick={() => { setOpen(true); setSubmitted(false); }} className="fixed bottom-[4.5rem] left-1/2 -translate-x-1/2 z-50 md:hidden rounded-full bg-[#1A365D] px-5 py-3 text-xs font-bold text-white shadow-xl">📅 Book Site Visit</button>
+      <button onClick={() => { setOpen(true); setSubmitted(false); }} className="hidden rounded-full bg-[#1A365D] px-5 py-3 text-xs font-bold text-white shadow-xl">📅 Book Site Visit</button>
       {open && <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 p-4" onMouseDown={(e) => e.target === e.currentTarget && setOpen(false)}>
         <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
           <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-widest text-[#B08D57]">Anjanay Heights</p><h2 className="mt-1 text-2xl font-bold text-[#1A365D]">Book a Site Visit</h2><p className="mt-1 text-sm text-slate-500">Choose a convenient date and time. Our sales team will confirm.</p></div><button onClick={() => setOpen(false)} className="text-2xl text-slate-400" aria-label="Close">×</button></div>
