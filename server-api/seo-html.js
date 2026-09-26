@@ -4,8 +4,16 @@ const BASE='https://anjanayheights-9m6i.vercel.app';
 
 function esc(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function clean(v){return String(v??'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();}
-function tag(html,name,attrs,value){const re=new RegExp('<meta\\s+[^>]*'+name+'=["\\'][^"\\']+["\\'][^>]*>','i');const t='<meta '+attrs+' content="'+esc(value)+'">';return re.test(html)?html.replace(re,t):html.replace('</head>',t+'\\n</head>');}
-function linkCanonical(html,url){const re=/<link\\s+rel=["']canonical["'][^>]*>/i;const t='<link rel="canonical" href="'+esc(url)+'">';return re.test(html)?html.replace(re,t):html.replace('</head>',t+'\\n</head>');}
+function upsertMeta(html, attrs, value){
+  const re = new RegExp('<meta\\s+[^>]*'+attrs+'[^>]*>', 'i');
+  const tag = '<meta '+attrs+' content="'+esc(value)+'">';
+  return re.test(html) ? html.replace(re, tag) : html.replace('</head>', tag+'\\n</head>');
+}
+function linkCanonical(html,url){
+  const re=/<link\\s+rel=["']canonical["'][^>]*>/i;
+  const t='<link rel="canonical" href="'+esc(url)+'">';
+  return re.test(html)?html.replace(re,t):html.replace('</head>',t+'\\n</head>');
+}
 async function getJson(url){const r=await fetch(url,{headers:{apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+SUPABASE_ANON_KEY}});if(!r.ok)throw new Error('inventory '+r.status);return r.json();}
 async function template(req){
   const host=String(req.headers?.host||'anjanayheights-9m6i.vercel.app').split(',')[0];
@@ -47,14 +55,14 @@ export default async function seoHtml(req,res){
     let html=await template(req);
     html=html.replace(/<title>[^<]*<\\/title>/i,'<title>'+esc(title)+'</title>');
     html=html.replace(/<meta\\s+name=["']description["'][^>]*>/i,'<meta name="description" content="'+esc(description)+'">');
-    html=tag(html,'property="og:title"','property="og:title"',title);
-    html=tag(html,'property="og:description"','property="og:description"',description);
-    html=tag(html,'property="og:url"','property="og:url"',canonical);
-    html=tag(html,'name="twitter:title"','name="twitter:title"',title);
-    html=tag(html,'name="twitter:description"','name="twitter:description"',description);
+    html=upsertMeta(html,'property=["']og:title["']',title);
+    html=upsertMeta(html,'property=["']og:description["']',description);
+    html=upsertMeta(html,'property=["']og:url["']',canonical);
+    html=upsertMeta(html,'name=["']twitter:title["']',title);
+    html=upsertMeta(html,'name=["']twitter:description["']',description);
     html=linkCanonical(html,canonical);
     html=html.replace(/<script\\s+type=["']application\\/ld\\+json["'][^>]*>.*?<\\/script>/is,'<script type="application/ld+json">'+JSON.stringify(schema)+'</script>');
-    if(status===404)html=tag(html,'name="robots"','name="robots"','noindex, follow');
+    if(status===404)html=upsertMeta(html,'name=["']robots["']','noindex, follow');
     res.status(status).setHeader('Content-Type','text/html; charset=utf-8').setHeader('Cache-Control','public, s-maxage=300, stale-while-revalidate=3600').send(html);
   }catch(e){
     res.status(500).setHeader('Cache-Control','no-store').send('SEO page generation failed.');
