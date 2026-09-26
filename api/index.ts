@@ -4,6 +4,7 @@
 
 import { get, list } from '@vercel/blob';
 import sitemap from '../server-api/sitemap.js';
+import seoHtml from '../server-api/seo-html.js';
 
 type PublicProperty = {
   id: string;
@@ -136,6 +137,7 @@ const loaders: Record<string, () => Promise<any>> = {
   'followup-engine': () => import('../server-api/followup-engine.js'),
   'inventory-public': async () => ({default: publicInventory}),
   'sitemap': async () => ({default: sitemap}),
+  'seo-html': async () => ({default: seoHtml}),
   'instagram-auto-post': () => import('../server-api/instagram-auto-post.js'),
   'facebook-auto-post': () => import('../server-api/facebook-auto-post.js'),
   'facebook-verify': () => import('../server-api/facebook-verify.js'),
