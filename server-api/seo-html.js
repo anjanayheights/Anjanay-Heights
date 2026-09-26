@@ -15,14 +15,7 @@ function linkCanonical(html,url){
   return re.test(html)?html.replace(re,t):html.replace('</head>',t+'\\n</head>');
 }
 async function getJson(url){const r=await fetch(url,{headers:{apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+SUPABASE_ANON_KEY}});if(!r.ok)throw new Error('inventory '+r.status);return r.json();}
-async function template(req){
-  const host=String(req.headers?.host||'anjanayheights-9m6i.vercel.app').split(',')[0];
-  const proto=String(req.headers?.['x-forwarded-proto']||'https');
-  const origin=proto+'://'+host;
-  const r=await fetch(origin+'/index.html');
-  if(!r.ok)throw new Error('template '+r.status);
-  return r.text();
-}
+function template(){return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Anjanay Heights</title><meta name="description" content="Verified property opportunities from Anjanay Heights."></head><body><div id="root"></div></body></html>';}
 export default async function seoHtml(req,res){
   try{
     const kind=String(req.query?.kind||'');
@@ -52,7 +45,7 @@ export default async function seoHtml(req,res){
       canonical=BASE+'/locations/'+encodeURIComponent(slug);
       schema={"@context":"https://schema.org","@type":"CollectionPage","name":title,"url":canonical,"description":description,"isPartOf":{"@type":"WebSite","name":"Anjanay Heights","url":BASE+'/'},"about":{"@type":"Place","name":name}};
     }else{status=404;}
-    let html=await template(req);
+    let html=template();
     html=html.replace(/<title>[^<]*<\\/title>/i,'<title>'+esc(title)+'</title>');
     html=html.replace(/<meta\\s+name=["']description["'][^>]*>/i,'<meta name="description" content="'+esc(description)+'">');
     html=upsertMeta(html,'property=["']og:title["']',title);
