@@ -22,7 +22,7 @@ export default function PublicSiteVisitBooking() {
 
   return (
     <>
-      <button onClick={() => { setOpen(true); setSubmitted(false); }} className="fixed bottom-24 right-5 z-50 hidden md:block rounded-full bg-[#1A365D] px-5 py-3 text-sm font-bold text-white shadow-xl hover:scale-105 transition-transform">📅 Book Site Visit</button>
+      <button onClick={() => { setOpen(true); setSubmitted(false); }} className="fixed bottom-5 right-[230px] z-40 hidden md:block rounded-full bg-[#1A365D] px-5 py-3 text-sm font-bold text-white shadow-xl hover:scale-105 transition-transform">📅 Book Site Visit</button>
       <button onClick={() => { setOpen(true); setSubmitted(false); }} className="fixed bottom-[4.5rem] left-1/2 -translate-x-1/2 z-50 md:hidden rounded-full bg-[#1A365D] px-5 py-3 text-xs font-bold text-white shadow-xl">📅 Book Site Visit</button>
       {open && <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 p-4" onMouseDown={(e) => e.target === e.currentTarget && setOpen(false)}>
         <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
