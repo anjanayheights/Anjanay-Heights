@@ -33,6 +33,35 @@ export default function PropertyDetail({ id }: { id: string }) {
       .finally(() => setLoading(false));
   }, [id]);
 
+  useEffect(() => {
+    if (!property) return;
+    const pageUrl = window.location.origin + '/property/' + encodeURIComponent(property.id);
+    const description = property.description || ('Verified property in ' + property.location + '. Contact Anjanay Heights for current availability and pricing.');
+    document.title = property.title + ' | Anjanay Heights';
+    const setMeta = (name: string, content: string) => {
+      let el = document.querySelector('meta[name="' + name + '"]');
+      if (!el) { el = document.createElement('meta'); el.setAttribute('name', name); document.head.appendChild(el); }
+      el.setAttribute('content', content);
+    };
+    const setOg = (propertyName: string, content: string) => {
+      let el = document.querySelector('meta[property="' + propertyName + '"]');
+      if (!el) { el = document.createElement('meta'); el.setAttribute('property', propertyName); document.head.appendChild(el); }
+      el.setAttribute('content', content);
+    };
+    let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.rel = 'canonical';
+      document.head.appendChild(canonical);
+    }
+    canonical.href = pageUrl;
+    setMeta('description', description.slice(0, 155));
+    setOg('og:title', property.title + ' | Anjanay Heights');
+    setOg('og:description', description.slice(0, 200));
+    setOg('og:url', pageUrl);
+    if (property.photos?.[0]) setOg('og:image', property.photos[0]);
+  }, [property]);
+
   if (loading) {
     return <section className="min-h-screen bg-[#F9F9F7] px-4 py-32 text-center text-gray-500">Loading verified property…</section>;
   }
