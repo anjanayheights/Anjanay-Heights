@@ -15,6 +15,41 @@
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="Real Estate Consultant in Noida | Anjanay Heights" />
     <meta name="twitter:description" content="Property consulting, buying, selling and investment assistance in Noida and Greater Noida." />
+    <script>
+      (() => {
+        const path = window.location.pathname;
+        const origin = window.location.origin;
+        const canonical = document.querySelector('link[rel="canonical"]');
+        const cleanPath = path === '/' ? '/' : path.replace(/\\/$/, '');
+        const absolute = origin + cleanPath;
+        if (canonical) canonical.setAttribute('href', absolute);
+        const setMeta = (name, content) => {
+          let el = document.querySelector('meta[name="' + name + '"]');
+          if (!el) { el = document.createElement('meta'); el.setAttribute('name', name); document.head.appendChild(el); }
+          el.setAttribute('content', content);
+        };
+        const setOg = (property, content) => {
+          let el = document.querySelector('meta[property="' + property + '"]');
+          if (!el) { el = document.createElement('meta'); el.setAttribute('property', property); document.head.appendChild(el); }
+          el.setAttribute('content', content);
+        };
+        if (path.startsWith('/property/')) {
+          document.title = 'Verified Property | Anjanay Heights';
+          setMeta('description', 'Verified property listing from Anjanay Heights. Check current price, availability, location and site-visit options.');
+          setOg('og:title', 'Verified Property | Anjanay Heights');
+          setOg('og:description', 'Verified property listing from Anjanay Heights.');
+          setOg('og:url', absolute);
+        } else if (path.startsWith('/locations/')) {
+          const slug = decodeURIComponent(path.split('/')[2] || '').replace(/-/g, ' ');
+          const name = slug.replace(/\\b\\w/g, c => c.toUpperCase());
+          document.title = 'Property in ' + name + ' | Anjanay Heights';
+          setMeta('description', 'Explore active, verified property opportunities in ' + name + ' with Anjanay Heights.');
+          setOg('og:title', 'Property in ' + name + ' | Anjanay Heights');
+          setOg('og:description', 'Active, verified property opportunities in ' + name + '.');
+          setOg('og:url', absolute);
+        }
+      })();
+    </script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
