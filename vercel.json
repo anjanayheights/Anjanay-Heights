@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/property/:id",
+      "destination": "/api/index?route=seo-html&kind=property&id=:id"
+    },
+    {
+      "source": "/locations/:slug",
+      "destination": "/api/index?route=seo-html&kind=location&slug=:slug"
+    },
+    {
       "source": "/sitemap.xml",
       "destination": "/api/index?route=sitemap"
     },
